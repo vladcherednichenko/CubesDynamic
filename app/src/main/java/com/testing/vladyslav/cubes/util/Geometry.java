@@ -49,7 +49,7 @@ public class Geometry {
 
         public Vector (Point a, Point b){
 
-            this.x = b.x = a.x;
+            this.x = b.x - a.x;
             this.y = b.y - a.y;
             this.z = b.z - a.z;
 
@@ -91,14 +91,19 @@ public class Geometry {
     }
 
 
-    public class Parallelogram{
+    public static class Parallelogram{
 
-        Point p, q, r;
 
-        public Parallelogram(Point p, Point q, Point r) {
+        public String name;
+        public Point p, q, r;
+        public Vector normal;
+
+        public Parallelogram(Point p, Point q, Point r, Vector normal, String name) {
             this.p = p;
             this.q = q;
             this.r = r;
+            this.name = name;
+            this.normal = normal;
         }
 
 
@@ -111,12 +116,34 @@ public class Geometry {
             float n = -det(pa, pq) / det(pq, pr);
             float m = det(pa, pr) / det(pq, pr);
 
+            return n > 0 && n < 1 && m > 0 && m < 1;
+
 
         }
 
         private float det(Vector a, Vector b){
 
             return a.x * b.y - b.x * a.y;
+
+        }
+
+        public float getClosestZPositionToScreen(){
+
+            float f = -1000f;
+
+            if (p.z > f){
+                f = p.z;
+            }
+
+            if(q.z > f){
+                f = q.z;
+            }
+
+            if(r.z > f){
+                f = r.z;
+            }
+
+            return f;
 
         }
     }

@@ -70,9 +70,6 @@ public class FigureBuilder {
 
     private int sizeY;
 
-    private boolean isScattered = false;
-    private final float[] resetScater = {0.0f, 0.0f, 0.0f};
-    private Animator animator;
 
     private VertexArray vertexPosArray;
     private VertexArray vertexColorArray;
@@ -87,9 +84,10 @@ public class FigureBuilder {
     private int vertexBufferNormalIdx = 0;
 
     private ArrayList<Cube> cubes;
+    private ArrayList<Point> cubeCenters = new ArrayList<>();
 
     //private int cubeNumber = 71;
-    private int cubeNumber = 47;
+    private int cubeNumber = 1;
     //private int cubeNumber = 157;
 
     private int vertexDataOffset = 0;
@@ -99,49 +97,56 @@ public class FigureBuilder {
     public FigureBuilder(){
 
 
+        cubeCenters.add(new Point (0f, 0f, 0f));
+
+        buildFigure(cubeCenters);
+
+
+    }
+
+    private void buildFigure(ArrayList<Point> cubeCenters){
+
         cubes = new ArrayList<>();
 
-        sizeY = model.length / (sizeX*sizeZ);
-
-        animator = new Animator(cubeNumber, sizeY, cubes);
+        vertexColorDataOffset = 0;
+        vertexDataOffset = 0;
+        vertexNormalDataOffset = 0;
 
         vertexPositionData = new float[CubeDataHolder.getInstance().sizeInVertex * POSITION_COMPONENT_COUNT * cubeNumber];
         vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
         vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
 
+        for (Point center: cubeCenters){
 
-        float startingPointX = (float)sizeX/2 - 0.5f;
-        float startingPointY = (-1) * (float)sizeY / 2 + 0.5f;
-        float startingPointZ = (-1) * (float)sizeZ / 2 + 0.5f;
+            Color color = new Color("#f4b942");
+            Cube cube = new Cube(center, color);
 
-
-        for (int i = 0; i< model.length; i++){
-
-            if (model[i]>0){
-
-                Color color = new Color(colorCodeToHex.get(model[i]));
-
-
-                Cube cube = new Cube(new Point (
-
-                        startingPointX - (i/sizeZ ) + (i/ (sizeZ * sizeX))*sizeX,
-                        startingPointY + (int)i/(sizeX * sizeZ),
-                        startingPointZ + i % sizeZ ),color);
-
-                cubes.add(cube);
-                appendCube(cube);
-
-            }
-
+            cubes.add(cube);
+            appendCube(cube);
 
         }
-
-
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
         vertexNormalArray = new VertexArray(vertexNormalData);
 
+    }
+
+    public void addNewCube(Point center){
+
+        for (Point oldCenter: cubeCenters){
+
+            if (center.x == oldCenter.x &&
+                    center.y == oldCenter.y &&
+                    center.z == oldCenter.z){
+                return;
+            }
+        }
+
+        cubeNumber++;
+        cubeCenters.add(center);
+        buildFigure(cubeCenters);
+        bindAttributesData();
 
     }
 
@@ -151,6 +156,14 @@ public class FigureBuilder {
             return cubes.get(0).center;
 
         else return null;
+
+        //return cubeCenters;
+
+    }
+
+    public ArrayList<Point> getCubeCenters(){
+
+        return cubeCenters;
 
     }
 
@@ -196,17 +209,6 @@ public class FigureBuilder {
     }
 
 
-    public void openFigure(){
-        isScattered = !isScattered;
-    }
-
-
-    private void createGrid(){
-
-
-        //float
-
-    }
 
     public void draw(ShaderProgram shader){
 
@@ -227,16 +229,7 @@ public class FigureBuilder {
         glVertexAttribPointer(shader.getNormalAttributeLocation(), NORMAL_COMPONENT_COUNT, GLES20.GL_FLOAT, false, 0, 0);
 
 
-        if (isScattered){
-
-            animator.drawOpenedFigure(shader);
-
-
-        }else{
-
-            animator.drawClosedFigure(shader);
-
-        }
+        glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeDataHolder.getInstance().sizeInVertex * cubeNumber);
 
     }
 

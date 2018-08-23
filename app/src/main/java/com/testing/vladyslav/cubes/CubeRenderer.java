@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.util.Log;
 
 import com.testing.vladyslav.cubes.objects.GridBuilder;
 import com.testing.vladyslav.cubes.objects.FigureBuilder;
@@ -12,6 +13,9 @@ import com.testing.vladyslav.cubes.programs.GridShaderProgram;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
 import com.testing.vladyslav.cubes.util.Geometry;
 import com.testing.vladyslav.cubes.util.Geometry.*;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -23,6 +27,8 @@ import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.rotateM;
 import static android.opengl.Matrix.translateM;
+import static com.testing.vladyslav.cubes.util.ObjectSelectHelper.convertNormalized2DPointToRay;
+import static com.testing.vladyslav.cubes.util.ObjectSelectHelper.getTouchedCubeSide;
 
 public class CubeRenderer implements GLSurfaceView.Renderer {
     private Context context;
@@ -89,6 +95,9 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private boolean lowerGrid = false;
     private float gridHeight = 0f;
 
+    private boolean shouldAddCube = false;
+    private Point newCubeCenter;
+
     private float scaleFactor = 1f;
 
     private boolean cubePressed = false;
@@ -147,79 +156,89 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         //if(builder!=null){builder.handleTouchPress();}
         lowerGrid();
 
+        addCube(normalizedX, normalizedY);
 
 
+
+
+
+
+    }
+
+    private void addCube(float normalizedX, float normalizedY){
+
+        ArrayList<Point> cubeCenters = new ArrayList<>(builder.getCubeCenters());
         float cubeSize = 1f;
         float sphereRadius = cubeSize / 2 * (float)Math.sqrt(2);
 
-        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10, normalizedY * 10);
+        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10, normalizedY * 10, invertedViewProjectionMatrix);
 
-        float[] cubePos = new float[4];
+        Iterator<Point> iterator = cubeCenters.iterator();
+
+        while(iterator.hasNext()){
+
+            float[] cubePos = new float[4];
+
+            Point cubeCenter = iterator.next();
+            multiplyMV (cubePos,0, modelMatrix, 0, new float[]{cubeCenter.x, cubeCenter.y, cubeCenter.z, 0}, 0);
+            Geometry.Sphere cubeBoundingSphere = new Geometry.Sphere(new Point (cubePos[0], cubePos[1], cubePos[2]), sphereRadius);
+
+            boolean intersects = Geometry.intersects(cubeBoundingSphere, ray);
+
+            if(!intersects){
+
+                iterator.remove();
+
+            }
+            else {
+
+                Point newCenter = getTouchedCubeSide(cubeCenter, ray.point, modelMatrix);
+                if (newCenter == null){
+
+                    iterator.remove();
+
+                }
+
+            }
 
 
-        multiplyMV (cubePos,0, modelMatrix, 0, new float[]{cubePosition.x, cubePosition.y, cubePosition.z, 0}, 0);
+        }
 
-        Geometry.Sphere cubeBoundingSphere = new Geometry.Sphere(new Point (cubePos[0], cubePos[1], cubePos[2]), sphereRadius);
 
-        cubePressed = Geometry.intersects(cubeBoundingSphere, ray);
+
+        if(cubeCenters.size() > 0){
+
+            Point closestPoint = cubeCenters.get(0);
+
+            float closestSpot = -1000f;
+
+            for (Point cubeCenter: cubeCenters){
+
+                if(cubeCenter.z > closestSpot){
+                    closestPoint = cubeCenter;
+                    closestSpot = cubeCenter.z;
+                }
+            }
+
+
+            shouldAddCube = true;
+            newCubeCenter = getTouchedCubeSide(closestPoint, ray.point, modelMatrix);
+
+
+        }
+
+
+
+
+
 
         if (listener!= null){
             listener.onTouched(String.valueOf(normalizedX) + " : " + String.valueOf(normalizedY) + " : " + String.valueOf(cubePressed));
         }
 
-    }
-
-    private void getTouchedSide(Point center, Point touch){
-
-        float cubeSize = 1f;
-
-        Point A = new Point(center.x + cubeSize/2 , center.y + cubeSize/2, center.z + cubeSize/2);
-        Point B = new Point(center.x - cubeSize/2 , center.y + cubeSize/2, center.z + cubeSize/2);
-        Point C = new Point(center.x + cubeSize/2 , center.y - cubeSize/2, center.z + cubeSize/2);
-        Point D = new Point(center.x + cubeSize/2 , center.y + cubeSize/2, center.z - cubeSize/2);
-
-        Point A1 = new Point(center.x - cubeSize/2 , center.y - cubeSize/2, center.z - cubeSize/2);
-        Point B1 = new Point(center.x + cubeSize/2 , center.y - cubeSize/2, center.z - cubeSize/2);
-        Point C1 = new Point(center.x - cubeSize/2 , center.y + cubeSize/2, center.z - cubeSize/2);
-        Point D1 = new Point(center.x - cubeSize/2 , center.y - cubeSize/2, center.z + cubeSize/2);
-
-
 
     }
 
-    private Ray convertNormalized2DPointToRay(float normalizedX, float normalizedY){
-
-
-        final float[] nearPointNdc = {normalizedX, normalizedY, -1, 1};
-        final float[] farPointNdc = {normalizedX, normalizedY, 1, 1};
-        final float[] nearPointWorld = new float[4];
-        final float[] farPointWorld = new float[4];
-        multiplyMV(
-                nearPointWorld, 0, invertedViewProjectionMatrix, 0, nearPointNdc, 0);
-        multiplyMV(
-                farPointWorld, 0, invertedViewProjectionMatrix, 0, farPointNdc, 0);
-
-        divideByW(nearPointWorld);
-        divideByW(farPointWorld);
-
-        Point nearPointRay =
-                new Point(nearPointWorld[0], nearPointWorld[1], nearPointWorld[2]);
-        Point farPointRay =
-                new Point(farPointWorld[0], farPointWorld[1], farPointWorld[2]);
-
-        return new Geometry.Ray(nearPointRay,
-                Geometry.vectorBetween(nearPointRay, farPointRay));
-
-
-    }
-
-    private void divideByW(float[] vector) {
-
-
-        vector[0] /= vector[3];
-        vector[1] /= vector[3];
-        vector[2] /= vector[3];
-    }
 
     @Override
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
@@ -268,7 +287,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         builder.bindAttributesData();
 
 
-        cubePosition = builder.getCubeCenter();
+        //cubePosition = builder.getCubeCenter();
 
 
 
@@ -310,6 +329,14 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             gridBuilder.lowerGrid();
 
             lowerGrid = false;
+
+        }
+
+        if(shouldAddCube){
+
+            builder.addNewCube(newCubeCenter);
+
+            shouldAddCube = false;
 
         }
 
@@ -361,9 +388,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
 
-
-
-
         multiplyMV(frontLightPosInWorldSpace, 0, frontLightModelMatrix, 0, lightPosInModelSpace, 0);
         multiplyMV(frontLightPosInEyeSpace, 0, viewMatrix, 0, frontLightPosInWorldSpace, 0);
 
@@ -391,14 +415,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         MVPMatrix = getMVPMatrix(modelMatrix, viewMatrix, projectionMatrix);
 
 
-//        //manipulations with the cubes model matrix
-//        Matrix.setIdentityM(modelMatrix, 0);
-//        Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -7.0f);
-//
-//
-//
-//        rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
-//        rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
 
         // Set our per-vertex lighting gridShader.
         cubeShader.useProgram();
