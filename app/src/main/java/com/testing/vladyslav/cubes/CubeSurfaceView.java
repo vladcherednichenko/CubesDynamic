@@ -42,6 +42,12 @@ public class CubeSurfaceView extends GLSurfaceView{
 
 
 
+    public CubeRenderer getRenderer(){
+
+        return this.renderer;
+
+    }
+
     public void setListener(CubeRenderer.CubeRendererListener listener){
         if (renderer != null){
             renderer.setListener(listener);

@@ -31,4 +31,13 @@ public class Point {
 
     }
 
+    public boolean equals(Point secondPoint){
+
+        return this.x == secondPoint.x &&
+                this.y == secondPoint.y &&
+                this.z == secondPoint.z;
+
+
+    }
+
 }

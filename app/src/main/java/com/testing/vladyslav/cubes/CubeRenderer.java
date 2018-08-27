@@ -93,7 +93,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private GridBuilder gridBuilder;
 
     private boolean lowerGrid = false;
-    private float gridHeight = 0f;
+    private float gridHeight = -1.5f;
 
     private boolean shouldAddCube = false;
     private Point newCubeCenter;
@@ -103,6 +103,11 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private boolean cubePressed = false;
     private Point cubePosition;
 
+    private int currentColorIndex = 240;
+
+    private boolean shouldBackwards = false;
+    private boolean shouldForward = false;
+
 
     //connection with the main activity
     private CubeRendererListener listener;
@@ -111,10 +116,11 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         void onTouched(String txt);
     }
 
+    public void backward(){shouldBackwards = true;}
+
+    public void forward(){shouldForward = true;}
+
     public void setListener (CubeRendererListener listener){ this.listener = listener; }
-
-
-
 
     public void setScaleFactor(float scaleFactor) {
         this.scaleFactor = scaleFactor;
@@ -124,7 +130,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         return scaleFactor;
     }
 
-
+    public void setColor(int colorIndex){this.currentColorIndex = colorIndex;}
 
     public float getXAngle() {
         return this.xAngle;
@@ -168,10 +174,14 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private void addCube(float normalizedX, float normalizedY){
 
         ArrayList<Point> cubeCenters = new ArrayList<>(builder.getCubeCenters());
+        ArrayList<Point> tileCenters = new ArrayList<>(gridBuilder.getTileCenters());
+
+
+        cubeCenters.addAll(tileCenters);
         float cubeSize = 1f;
         float sphereRadius = cubeSize / 2 * (float)Math.sqrt(2);
 
-        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10, normalizedY * 10, invertedViewProjectionMatrix);
+        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10 / scaleFactor , normalizedY * 10 / scaleFactor, invertedViewProjectionMatrix);
 
         Iterator<Point> iterator = cubeCenters.iterator();
 
@@ -208,32 +218,55 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         if(cubeCenters.size() > 0){
 
-            Point closestPoint = cubeCenters.get(0);
+            ArrayList<Point> translatedCubeCenters = new ArrayList<>();
+            for(Point point: cubeCenters){
+                translatedCubeCenters.add(point.clone());
+            }
+            translatePointsArrayList(translatedCubeCenters, modelMatrix);
+
+            Point closestPoint = translatedCubeCenters.get(0);
 
             float closestSpot = -1000f;
 
-            for (Point cubeCenter: cubeCenters){
+            for (int i = 0; i< translatedCubeCenters.size(); i++){
 
+                Point cubeCenter = translatedCubeCenters.get(i);
                 if(cubeCenter.z > closestSpot){
-                    closestPoint = cubeCenter;
+                    closestPoint = cubeCenters.get(i);
                     closestSpot = cubeCenter.z;
                 }
+
+            }
+
+            newCubeCenter = getTouchedCubeSide(closestPoint, ray.point, modelMatrix);
+            if(newCubeCenter.y > gridHeight){
+                shouldAddCube = true;
             }
 
 
-            shouldAddCube = true;
-            newCubeCenter = getTouchedCubeSide(closestPoint, ray.point, modelMatrix);
 
 
         }
 
 
-
-
-
-
         if (listener!= null){
-            listener.onTouched(String.valueOf(normalizedX) + " : " + String.valueOf(normalizedY) + " : " + String.valueOf(cubePressed));
+            listener.onTouched(String.valueOf(normalizedX) + " : " + String.valueOf(normalizedY) + " : " + String.valueOf(shouldAddCube) + " cubes: " + builder.getCubeCenters().size());
+        }
+
+
+    }
+
+    private void translatePointsArrayList(ArrayList<Point> points, float[] modelMatrix){
+
+        for (Point point: points){
+
+            float[] pointPos = new float[4];
+            multiplyMV(pointPos, 0, modelMatrix, 0, new float[]{point.x, point.y, point.z, 0}, 0);
+
+            point.x = pointPos[0];
+            point.y = pointPos[1];
+            point.z = pointPos[2];
+
         }
 
 
@@ -273,10 +306,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
 
-
-
         gridShader = new GridShaderProgram(context);
-        gridBuilder = new GridBuilder(-0f);
+        gridBuilder = new GridBuilder(gridHeight);
         gridBuilder.bindAttributesData();
 
 
@@ -326,7 +357,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         //add new grid if needed
         if (lowerGrid){
 
-            gridBuilder.lowerGrid();
+            //gridBuilder.lowerGrid();
 
             lowerGrid = false;
 
@@ -334,10 +365,21 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         if(shouldAddCube){
 
-            builder.addNewCube(newCubeCenter);
+            builder.addNewCube(newCubeCenter, currentColorIndex);
 
+            //builder.highliteCube(newCubeCenter);
             shouldAddCube = false;
 
+        }
+
+        if(shouldBackwards){
+            builder.backward();
+            shouldBackwards = false;
+        }
+
+        if(shouldForward){
+            builder.forward();
+            shouldForward = false;
         }
 
 
@@ -357,7 +399,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         gridShader.setScaleFactor(scaleFactor);
 
 
-        //gridBuilder.draw(gridShader);
+        gridBuilder.draw(gridShader);
 
 
         //draw the figure

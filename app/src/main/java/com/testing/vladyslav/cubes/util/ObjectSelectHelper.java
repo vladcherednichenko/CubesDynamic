@@ -107,6 +107,7 @@ public class ObjectSelectHelper {
         Log.d("Touched side : ", touchedSide.name);
 
         return center.clone().translate(touchedSide.normal);
+        //return center.clone();
 
 
     }

@@ -29,26 +29,28 @@ public class FigureBuilder {
     private int NORMAL_COMPONENT_COUNT = 3;
     private int STRIDE = 0;
 
-
     public static final HashMap<Integer, String> colorCodeToHex = new HashMap<Integer, String>(){
         {
-            put(248, "#b80b11");
-            put(247, "#ff6905");
-            put(246, "#ffb805");
-            put(245, "#62b013");
-            put(244, "#007800");
-            put(243, "#00b8b8");
-            put(242, "#0e94ed");
-            put(241, "#2424a3");
-            put(249, "#8032cf");
-            put(250, "#ff6bb0");
-            put(251, "#d9bb96");
-            put(252, "#b07e3e");
-            put(253, "#6e4c3c");
-            put(255, "#737373");
-            put(240, "#333333");
-            put(254, "#ffffff");
+            put(248, "#E4002B"); //red
+            put(247, "#FF8200"); //orange
+            put(246, "#FEDB00"); //yellow
+            put(245, "#62b013"); //light green
+            put(244, "#00843D"); //green
+            put(243, "#00b8b8"); //turquoise
+            put(242, "#41B6E6"); //light blue
+            put(241, "#003087"); //blue
+            put(249, "#753BBD"); //violet
+            put(250, "#F57EB6"); //pink
+            put(251, "#FCD299"); //tan
+            put(252, "#C88242"); //light brown
+            put(253, "#693F23"); //brown
+            put(255, "#A2AAAD"); //grey
+            put(240, "#333333"); //black
+            put(254, "#ffffff"); //white
+            put(238, "#333333"); //black
         }};
+
+
 
 
     private int model[] = {-1,-1,-1,-1,-1,-1,-1,244,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -83,30 +85,61 @@ public class FigureBuilder {
     private int vertexBufferColorIdx = 0;
     private int vertexBufferNormalIdx = 0;
 
+    private ArrayList<Cube> reservedCubes;
     private ArrayList<Cube> cubes;
+    private ArrayList<Point> reservedCubeCenters = new ArrayList<>();
     private ArrayList<Point> cubeCenters = new ArrayList<>();
 
     //private int cubeNumber = 71;
-    private int cubeNumber = 1;
+    private int cubeNumber = 0;
     //private int cubeNumber = 157;
 
     private int vertexDataOffset = 0;
     private int vertexColorDataOffset = 0;
     private int vertexNormalDataOffset = 0;
 
+    public ArrayList<Point> getCubeCenters(){ return cubeCenters;}
+
     public FigureBuilder(){
 
 
-        cubeCenters.add(new Point (0f, 0f, 0f));
+//        cubeCenters.add(new Point (0f, 0f, 0f));
+//
+//        cubeCenters.add(new Point (0f, 0f, 1f));
+//
+//        cubeCenters.add(new Point (0f, 0f, -1f));
+//
+//        cubeCenters.add(new Point (0f, 1f, 0f));
+//
+//        cubeCenters.add(new Point (0f, -1f, 0f));
+//
+//        cubeCenters.add(new Point (1f, 0f, 0f));
+//
+//        cubeCenters.add(new Point (-1f, 0f, 0f));
 
-        buildFigure(cubeCenters);
+
+        cubes = new ArrayList<>();
+        reservedCubes = new ArrayList<>();
+
+        for (Point center: cubeCenters){
+
+            Color color = new Color("#f4b942");
+            Cube cube = new Cube(center, color);
+
+            cubes.add(cube);
+            reservedCubes.add(cube);
+
+
+        }
+
+        buildFigure(cubes);
 
 
     }
 
-    private void buildFigure(ArrayList<Point> cubeCenters){
+    private void buildFigure(ArrayList<Cube> cubes){
 
-        cubes = new ArrayList<>();
+        if(cubeNumber<=0) return;
 
         vertexColorDataOffset = 0;
         vertexDataOffset = 0;
@@ -116,12 +149,8 @@ public class FigureBuilder {
         vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
         vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
 
-        for (Point center: cubeCenters){
+        for (Cube cube: cubes){
 
-            Color color = new Color("#f4b942");
-            Cube cube = new Cube(center, color);
-
-            cubes.add(cube);
             appendCube(cube);
 
         }
@@ -132,7 +161,9 @@ public class FigureBuilder {
 
     }
 
-    public void addNewCube(Point center){
+    public void addNewCube(Point center, int colorIndex){
+
+        if(center == null) return;
 
         for (Point oldCenter: cubeCenters){
 
@@ -145,28 +176,109 @@ public class FigureBuilder {
 
         cubeNumber++;
         cubeCenters.add(center);
-        buildFigure(cubeCenters);
+        reservedCubeCenters = new ArrayList<>(cubeCenters);
+
+
+        //buildFigure(cubeCenters);
+
+
+        vertexColorDataOffset = 0;
+        vertexDataOffset = 0;
+        vertexNormalDataOffset = 0;
+
+        vertexPositionData = new float[CubeDataHolder.getInstance().sizeInVertex * POSITION_COMPONENT_COUNT * cubeNumber];
+        vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
+        vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
+
+        Color color = new Color(colorCodeToHex.get(colorIndex));
+        Cube newCube = new Cube(center, color);
+        cubes.add(newCube);
+        reservedCubes = new ArrayList<>(cubes);
+
+
+
+        for (Cube cube: cubes){
+
+            appendCube(cube);
+
+        }
+
+        vertexPosArray = new VertexArray(vertexPositionData);
+        vertexColorArray = new VertexArray(vertexColorData);
+        vertexNormalArray = new VertexArray(vertexNormalData);
+
+        bindAttributesData();
+
+
+    }
+
+    public void highliteCube (Point center){
+
+        cubes = new ArrayList<>();
+
+        vertexColorDataOffset = 0;
+        vertexDataOffset = 0;
+        vertexNormalDataOffset = 0;
+
+        vertexPositionData = new float[CubeDataHolder.getInstance().sizeInVertex * POSITION_COMPONENT_COUNT * cubeNumber];
+        vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
+        vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
+
+        for (Point cubeCenter: cubeCenters){
+
+            Color color;
+
+            if(cubeCenter.equals(center)){
+                color = new Color("#ff0000");
+            }else
+            color = new Color("#f4b942");
+
+            Cube cube = new Cube(cubeCenter, color);
+
+            cubes.add(cube);
+            appendCube(cube);
+
+        }
+
+        vertexPosArray = new VertexArray(vertexPositionData);
+        vertexColorArray = new VertexArray(vertexColorData);
+        vertexNormalArray = new VertexArray(vertexNormalData);
+
+
         bindAttributesData();
 
     }
 
-    public Point getCubeCenter(){
+    public void forward(){
 
-        if(cubes != null && cubes.size()!=0)
-            return cubes.get(0).center;
+        if(reservedCubes.size()<=0 || reservedCubes.size() == cubes.size()){
+            return;
+        }
 
-        else return null;
+        cubeCenters.add(reservedCubeCenters.get(cubeCenters.size()));
+        cubes.add(reservedCubes.get(cubes.size()));
+        cubeNumber++;
+        buildFigure(cubes);
 
-        //return cubeCenters;
+        bindAttributesData();
+
 
     }
 
-    public ArrayList<Point> getCubeCenters(){
+    public void backward(){
 
-        return cubeCenters;
+        if(cubes.size()>0){
+            cubes.remove(cubes.size()-1);
+            cubeCenters.remove(cubeCenters.size()-1);
+            cubeNumber --;
+
+            buildFigure(cubes);
+            bindAttributesData();
+
+        }
+
 
     }
-
 
     private void appendCube(Cube cube){
 
@@ -187,6 +299,10 @@ public class FigureBuilder {
 
     public void bindAttributesData(){
 
+
+        if(cubeNumber <=0){
+            return;
+        }
 
         final int buffers[] = new int[3];
         glGenBuffers(3, buffers, 0);
@@ -212,6 +328,9 @@ public class FigureBuilder {
 
     public void draw(ShaderProgram shader){
 
+        if(cubeNumber <= 0){
+            return;
+        }
 
         //draw figure
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferPositionIdx);

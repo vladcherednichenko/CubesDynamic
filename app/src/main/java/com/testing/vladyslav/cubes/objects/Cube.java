@@ -12,7 +12,7 @@ public class Cube {
     private int COLOR_COORDINATES_COMPONENT_COUNT = 4;
     private int STRIDE = 0;
 
-    public final Point center;
+    public Point center;
 
     public float[] cubePositionData;
     public float[] cubeColorData;
@@ -51,6 +51,12 @@ public class Cube {
         translateCube(center);
 
     }
+
+//    public Cube(Point center){
+//
+//        this.center = center;
+//
+//    }
 
 
 

@@ -21,9 +21,10 @@ public class GridBuilder {
     private int POSITION_COMPONENT_COUNT = 3;
     private int COLOR_COORDINATES_COMPONENT_COUNT = 4;
     private int STRIDE = 0;
+    private float cubeSize = 1f;
 
     private int gridSize = 11;
-    private float gridHeight = 0;
+    private float gridHeight = -1.5f;
     private int vertexNumber;
 
     private VertexArray vertexPosArray;
@@ -39,14 +40,22 @@ public class GridBuilder {
     private int vertexColorDataOffset = 0;
 
 
+    private ArrayList<Point> tileCenters;
     private ArrayList<Line> grid;
 
+
+    public ArrayList<Point> getTileCenters(){
+
+        return tileCenters;
+
+    }
 
     public GridBuilder(float height){
 
         this.gridHeight = height;
 
         buildGrid(gridSize, gridHeight);
+        buildTites(gridSize, gridHeight);
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
@@ -78,6 +87,9 @@ public class GridBuilder {
         defaultHorizontalStartPoint.translateX((-1) * (float)size / 2f);
         defaultHorizontalEndPoint.translateX((-1) * (float)size / 2f);
 
+
+        //Point default
+
         //create horizontal lines
         for (int i = 0; i< linesInOneRow; i++){
 
@@ -97,6 +109,33 @@ public class GridBuilder {
         }
 
         resetOffsets();
+
+    }
+
+    private void buildTites(float gridSize, float gridHeight){
+
+        tileCenters = new ArrayList<>();
+
+        Point defaultTilePosition = new Point(-(float)gridSize/2 + cubeSize/2, gridHeight - cubeSize / 2, -(float)gridSize/2 + cubeSize/2);
+
+        //tileCenters.add(defaultTilePosition.clone());
+
+        for (int i = 0; i< gridSize; i++){
+
+
+            for (int j = 0; j< gridSize; j++){
+
+                Point center = defaultTilePosition.clone();
+                center.translateX(cubeSize * j);
+
+                tileCenters.add(center);
+
+            }
+
+            defaultTilePosition.translateZ(cubeSize);
+
+        }
+
 
     }
 
