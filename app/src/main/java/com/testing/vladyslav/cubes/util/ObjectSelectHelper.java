@@ -2,6 +2,7 @@ package com.testing.vladyslav.cubes.util;
 
 import android.util.Log;
 
+import com.testing.vladyslav.cubes.CubeRenderer;
 import com.testing.vladyslav.cubes.objects.Point;
 
 import java.util.ArrayList;
@@ -10,6 +11,117 @@ import java.util.Iterator;
 import static android.opengl.Matrix.multiplyMV;
 
 public class ObjectSelectHelper {
+
+    public static class TouchResult{
+
+        public boolean cubeTouched = false;
+        public Point touchedCubeCenter;
+        public Point newCubeCenter;
+        public String touchedSide;
+
+        public TouchResult(boolean cubeTouched, Point touchedCubeCenter, Point newCubeCenter) {
+            this.cubeTouched = cubeTouched;
+            this.touchedCubeCenter = touchedCubeCenter;
+            this.newCubeCenter = newCubeCenter;
+            this.touchedSide = touchedSide;
+        }
+    }
+
+    public static TouchResult getTouchResult(ArrayList<Point>cubeCenters, float normalizedX, float normalizedY, float[] invertedViewProjectionMatrix, float [] modelMatrix, float scaleFactor, float gridHeight){
+
+
+
+
+        float cubeSize = 1f;
+        float sphereRadius = cubeSize / 2 * (float)Math.sqrt(2);
+
+        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10 / scaleFactor , normalizedY * 10 / scaleFactor, invertedViewProjectionMatrix);
+
+        Iterator<Point> iterator = cubeCenters.iterator();
+
+        while(iterator.hasNext()){
+
+            float[] cubePos = new float[4];
+
+            Point cubeCenter = iterator.next();
+            multiplyMV (cubePos,0, modelMatrix, 0, new float[]{cubeCenter.x, cubeCenter.y, cubeCenter.z, 0}, 0);
+            Geometry.Sphere cubeBoundingSphere = new Geometry.Sphere(new Point (cubePos[0], cubePos[1], cubePos[2]), sphereRadius);
+
+            boolean intersects = Geometry.intersects(cubeBoundingSphere, ray);
+
+            if(!intersects){
+
+                iterator.remove();
+
+            }
+            else {
+
+                Point newCenter = getTouchedCubeSide(cubeCenter, ray.point, modelMatrix);
+                if (newCenter == null){
+
+                    iterator.remove();
+
+                }
+
+            }
+
+
+        }
+
+        Point touchedCubeCenter = null;
+        Point newCubeCenter = null;
+        boolean cubeTouched = false;
+
+        if(cubeCenters.size() > 0){
+
+            ArrayList<Point> translatedCubeCenters = new ArrayList<>();
+            for(Point point: cubeCenters){
+                translatedCubeCenters.add(point.clone());
+            }
+            translatePointsArrayList(translatedCubeCenters, modelMatrix);
+
+            touchedCubeCenter = translatedCubeCenters.get(0);
+
+            float closestSpot = -1000f;
+
+            for (int i = 0; i< translatedCubeCenters.size(); i++){
+
+                Point cubeCenter = translatedCubeCenters.get(i);
+                if(cubeCenter.z > closestSpot){
+                    touchedCubeCenter = cubeCenters.get(i);
+                    closestSpot = cubeCenter.z;
+                }
+
+            }
+
+            newCubeCenter = getTouchedCubeSide(touchedCubeCenter, ray.point, modelMatrix);
+            if(newCubeCenter != null && newCubeCenter.y > gridHeight) {
+                cubeTouched = true;
+            }
+
+        }
+
+
+        return new TouchResult(cubeTouched, touchedCubeCenter, newCubeCenter);
+
+
+    }
+
+    private static void translatePointsArrayList(ArrayList<Point> points, float[] modelMatrix){
+
+        for (Point point: points){
+
+            float[] pointPos = new float[4];
+            multiplyMV(pointPos, 0, modelMatrix, 0, new float[]{point.x, point.y, point.z, 0}, 0);
+
+            point.x = pointPos[0];
+            point.y = pointPos[1];
+            point.z = pointPos[2];
+
+        }
+
+
+    }
 
     public static Point getTouchedCubeSide(Point center, Point touch, float[] modelMatrix){
 

@@ -21,129 +21,166 @@
         android:textSize="30sp"/>
     <ImageView
         android:id="@+id/img_cancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="50dp"
-        app:srcCompat="@drawable/ic_menu_left" />
+        app:srcCompat="@mipmap/ic_menu_left" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:id="@+id/img_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            app:srcCompat= "@mipmap/icon_add"
+            android:layout_weight="1"/>
+
+        <ImageView
+            android:id="@+id/img_change_color"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            app:srcCompat= "@mipmap/icon_change_color"
+            android:layout_weight="1"/>
+        <ImageView
+            android:id="@+id/img_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            app:srcCompat= "@mipmap/icon_delete"
+            android:layout_weight="1"/>
+
+
+    </LinearLayout>
+
 
     <ImageView
         android:id="@+id/img_repeat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="50dp"
-        app:srcCompat="@drawable/ic_menu_right" />
+        app:srcCompat="@mipmap/ic_menu_right" />
     
     <LinearLayout
         android:id="@+id/colors_row"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true">
 
         <ImageView
             android:id="@+id/turqouse"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_16"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_16"
             android:layout_weight="1"
             />
 
         <ImageView
             android:id="@+id/green"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_15"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_15"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/light_green"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_14"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_14"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/yellow"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_13"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_13"
             android:layout_weight="1"/>
+
         <ImageView
             android:id="@+id/orange"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_12"
-            android:layout_weight="1"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:srcCompat="@mipmap/color_12" />
         <ImageView
             android:id="@+id/red"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_11"
+            app:srcCompat="@mipmap/color_11"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/pink"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_10"
+            app:srcCompat="@mipmap/color_10"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/pirple"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_09"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_09"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/blue"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_08"
+            app:srcCompat="@mipmap/color_08"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/light_blue"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_07"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_07"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/brown"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_06"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_06"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/light_brown"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_05"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_05"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/tan"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_04"
+            app:srcCompat="@mipmap/color_04"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/white"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_03"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_03"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/grey"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_02"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_02"
             android:layout_weight="1"/>
         <ImageView
             android:id="@+id/black"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/pixio_color_01"
+            android:layout_height="wrap_content"
+            app:srcCompat="@mipmap/color_01"
             android:layout_weight="1"/>
-
-
-
 
     </LinearLayout>
 

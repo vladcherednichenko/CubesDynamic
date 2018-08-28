@@ -3,21 +3,19 @@ package com.testing.vladyslav.cubes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
-import com.testing.vladyslav.cubes.util.TextResourceReader;
-
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements CubeRenderer.CubeRendererListener{
 
 
     private ImageView img_cancel;
     private ImageView img_repeat;
+    private ImageView img_add;
+    private ImageView img_change_color;
+    private ImageView img_delete;
 
     private ImageView img_color_turcouse;
     private ImageView img_color_green;
@@ -40,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
     private TextView txt_isTouched;
 
     private int graphicsQuality = 1;
+    private int nonTransparentAlpha = 255;
 
     private CubeSurfaceView surfaceView;
 
@@ -86,6 +85,38 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
                 surfaceView.getRenderer().forward();
             }
         });
+
+        img_add = findViewById(R.id.img_add);
+        img_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                surfaceView.getRenderer().setBuildingMode();
+                makeTransparentMiddleButtons();
+                img_add.setImageAlpha(nonTransparentAlpha);
+
+            }
+        });
+        img_change_color = findViewById(R.id.img_change_color);
+        img_change_color.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                surfaceView.getRenderer().setColorEditingMode();
+                makeTransparentMiddleButtons();
+                img_change_color.setImageAlpha(nonTransparentAlpha);
+            }
+        });
+        img_delete = findViewById(R.id.img_delete);
+        img_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                surfaceView.getRenderer().setDeleteMode();
+                makeTransparentMiddleButtons();
+                img_delete.setImageAlpha(nonTransparentAlpha);
+            }
+        });
+
+
+
 
         img_color_black = findViewById(R.id.black);
         img_color_black.setOnClickListener(new View.OnClickListener() {
@@ -208,7 +239,18 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
         surfaceView.setListener(this);
 
+        makeTransparentMiddleButtons();
 
+
+    }
+
+    private void makeTransparentMiddleButtons(){
+
+        int alpha = 90;
+
+        img_delete.setImageAlpha(alpha);
+        img_add.setImageAlpha(alpha);
+        img_change_color.setImageAlpha(alpha);
 
 
     }

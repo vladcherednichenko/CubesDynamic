@@ -4,7 +4,6 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.util.Log;
 
 import com.testing.vladyslav.cubes.objects.GridBuilder;
 import com.testing.vladyslav.cubes.objects.FigureBuilder;
@@ -12,7 +11,7 @@ import com.testing.vladyslav.cubes.objects.Point;
 import com.testing.vladyslav.cubes.programs.GridShaderProgram;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
 import com.testing.vladyslav.cubes.util.Geometry;
-import com.testing.vladyslav.cubes.util.Geometry.*;
+import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -96,17 +95,21 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private float gridHeight = -1.5f;
 
     private boolean shouldAddCube = false;
-    private Point newCubeCenter;
+    private boolean shouldEditCubeColor = false;
+    private boolean shouldDeleteCube = false;
+
 
     private float scaleFactor = 1f;
-
-    private boolean cubePressed = false;
-    private Point cubePosition;
+    private ObjectSelectHelper.TouchResult touchResult;
 
     private int currentColorIndex = 240;
 
     private boolean shouldBackwards = false;
     private boolean shouldForward = false;
+
+    private boolean buildingMode = false;
+    private boolean colorEditingMode = false;
+    private boolean deleteMode = false;
 
 
     //connection with the main activity
@@ -119,6 +122,14 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     public void backward(){shouldBackwards = true;}
 
     public void forward(){shouldForward = true;}
+
+    public void resetModes(){buildingMode = false; colorEditingMode = false; deleteMode = false;}
+
+    public void setBuildingMode(){resetModes(); buildingMode = true; }
+
+    public void setColorEditingMode(){resetModes(); colorEditingMode = true;}
+
+    public void setDeleteMode(){resetModes(); deleteMode = true;}
 
     public void setListener (CubeRendererListener listener){ this.listener = listener; }
 
@@ -159,113 +170,31 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
     public void handleTouchPress(float normalizedX, float normalizedY){
-        //if(builder!=null){builder.handleTouchPress();}
-        lowerGrid();
-
-        addCube(normalizedX, normalizedY);
-
-
-
-
-
-
-    }
-
-    private void addCube(float normalizedX, float normalizedY){
 
         ArrayList<Point> cubeCenters = new ArrayList<>(builder.getCubeCenters());
         ArrayList<Point> tileCenters = new ArrayList<>(gridBuilder.getTileCenters());
 
-
         cubeCenters.addAll(tileCenters);
-        float cubeSize = 1f;
-        float sphereRadius = cubeSize / 2 * (float)Math.sqrt(2);
 
-        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10 / scaleFactor , normalizedY * 10 / scaleFactor, invertedViewProjectionMatrix);
+        touchResult = ObjectSelectHelper.getTouchResult(cubeCenters, normalizedX, normalizedY, invertedViewProjectionMatrix, modelMatrix, scaleFactor, gridHeight);
+        if(!touchResult.cubeTouched) return;
 
-        Iterator<Point> iterator = cubeCenters.iterator();
 
-        while(iterator.hasNext()){
+        if(buildingMode){
 
-            float[] cubePos = new float[4];
-
-            Point cubeCenter = iterator.next();
-            multiplyMV (cubePos,0, modelMatrix, 0, new float[]{cubeCenter.x, cubeCenter.y, cubeCenter.z, 0}, 0);
-            Geometry.Sphere cubeBoundingSphere = new Geometry.Sphere(new Point (cubePos[0], cubePos[1], cubePos[2]), sphereRadius);
-
-            boolean intersects = Geometry.intersects(cubeBoundingSphere, ray);
-
-            if(!intersects){
-
-                iterator.remove();
-
-            }
-            else {
-
-                Point newCenter = getTouchedCubeSide(cubeCenter, ray.point, modelMatrix);
-                if (newCenter == null){
-
-                    iterator.remove();
-
-                }
-
-            }
-
+            shouldAddCube = true;
 
         }
 
+        if(colorEditingMode){
 
-
-        if(cubeCenters.size() > 0){
-
-            ArrayList<Point> translatedCubeCenters = new ArrayList<>();
-            for(Point point: cubeCenters){
-                translatedCubeCenters.add(point.clone());
-            }
-            translatePointsArrayList(translatedCubeCenters, modelMatrix);
-
-            Point closestPoint = translatedCubeCenters.get(0);
-
-            float closestSpot = -1000f;
-
-            for (int i = 0; i< translatedCubeCenters.size(); i++){
-
-                Point cubeCenter = translatedCubeCenters.get(i);
-                if(cubeCenter.z > closestSpot){
-                    closestPoint = cubeCenters.get(i);
-                    closestSpot = cubeCenter.z;
-                }
-
-            }
-
-            newCubeCenter = getTouchedCubeSide(closestPoint, ray.point, modelMatrix);
-            if(newCubeCenter.y > gridHeight){
-                shouldAddCube = true;
-            }
-
-
-
+            shouldEditCubeColor = true;
 
         }
 
+        if(deleteMode){
 
-        if (listener!= null){
-            listener.onTouched(String.valueOf(normalizedX) + " : " + String.valueOf(normalizedY) + " : " + String.valueOf(shouldAddCube) + " cubes: " + builder.getCubeCenters().size());
-        }
-
-
-    }
-
-    private void translatePointsArrayList(ArrayList<Point> points, float[] modelMatrix){
-
-        for (Point point: points){
-
-            float[] pointPos = new float[4];
-            multiplyMV(pointPos, 0, modelMatrix, 0, new float[]{point.x, point.y, point.z, 0}, 0);
-
-            point.x = pointPos[0];
-            point.y = pointPos[1];
-            point.z = pointPos[2];
+            shouldDeleteCube = true;
 
         }
 
@@ -318,8 +247,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         builder.bindAttributesData();
 
 
-        //cubePosition = builder.getCubeCenter();
-
 
 
     }
@@ -357,18 +284,21 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         //add new grid if needed
         if (lowerGrid){
 
-            //gridBuilder.lowerGrid();
-
             lowerGrid = false;
 
         }
 
         if(shouldAddCube){
 
-            builder.addNewCube(newCubeCenter, currentColorIndex);
-
-            //builder.highliteCube(newCubeCenter);
+            builder.addNewCube(touchResult.newCubeCenter, currentColorIndex);
             shouldAddCube = false;
+
+        }
+
+        if(shouldEditCubeColor){
+
+            builder.changeCubeColor(touchResult.touchedCubeCenter, currentColorIndex);
+            shouldEditCubeColor = false;
 
         }
 
@@ -381,6 +311,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             builder.forward();
             shouldForward = false;
         }
+
 
 
         //manipulations with the cubes model matrix
@@ -483,6 +414,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         return MVPMatrix;
 
     }
+
+
 
 
 }
