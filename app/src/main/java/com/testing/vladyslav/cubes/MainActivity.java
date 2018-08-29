@@ -1,12 +1,29 @@
 package com.testing.vladyslav.cubes;
 
+import android.app.ActionBar;
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.SparseIntArray;
+import android.util.TypedValue;
+import android.view.Display;
+import android.view.DragEvent;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements CubeRenderer.CubeRendererListener{
 
@@ -34,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
     private ImageView img_color_grey;
     private ImageView img_color_black;
 
+    private RelativeLayout editor_color_row;
 
     private TextView txt_isTouched;
 
@@ -41,7 +59,33 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
     private int nonTransparentAlpha = 255;
 
     private CubeSurfaceView surfaceView;
+    private ArrayList<ImageView> colorRow;
 
+    private short[] colorOrder = new short[]{243, 244, 245, 246, 247, 248, 250, 249, 241, 242, 253, 252, 251, 254, 255, 240};
+
+    public static final HashMap<Integer, Integer> colorCodeToImageName = new HashMap<Integer, Integer>(){
+        {
+
+            put(243, R.mipmap.color_16); //turquoise
+            put(244, R.mipmap.color_15); //green
+            put(245, R.mipmap.color_14); //light green
+            put(246, R.mipmap.color_13); //yellow
+
+            put(247, R.mipmap.color_12); //orange
+            put(248, R.mipmap.color_11); //red
+            put(250, R.mipmap.color_10); //pink
+            put(249, R.mipmap.color_09); //violet
+
+            put(241, R.mipmap.color_08); //blue
+            put(242, R.mipmap.color_07); //light blue
+            put(253, R.mipmap.color_06); //brown
+            put(252, R.mipmap.color_05); //light brown
+
+            put(251, R.mipmap.color_04); //tan
+            put(254, R.mipmap.color_03); //white
+            put(255, R.mipmap.color_02); //grey
+            put(240, R.mipmap.color_01); //black
+        }};
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -70,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
         setContentView(R.layout.activity_main);
 
         surfaceView = findViewById(R.id.surfaceView);
+
 
         img_cancel = findViewById(R.id.img_cancel);
         img_cancel.setOnClickListener(new View.OnClickListener() {
@@ -117,123 +162,28 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
 
 
-
-        img_color_black = findViewById(R.id.black);
-        img_color_black.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(240);
-            }
-        });
-        img_color_blue = findViewById(R.id.blue);
-        img_color_blue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(241);
-            }
-        });
-        img_color_brown = findViewById(R.id.brown);
-        img_color_brown.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(253);
-            }
-        });
-        img_color_green = findViewById(R.id.green);
-        img_color_green.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(244);
-            }
-        });
-        img_color_grey = findViewById(R.id.grey);
-        img_color_grey.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(255);
-            }
-        });
-        img_color_orange = findViewById(R.id.orange);
-        img_color_orange.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(247);
-            }
-        });
-        img_color_pink = findViewById(R.id.pink);
-        img_color_pink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(250);
-            }
-        });
-        img_color_light_blue = findViewById(R.id.light_blue);
-        img_color_light_blue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(242);
-            }
-        });
-        img_color_light_brown = findViewById(R.id.light_brown);
-        img_color_light_brown.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(252);
-            }
-        });
-        img_color_light_green = findViewById(R.id.light_green);
-        img_color_light_green.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(245);
-            }
-        });
-        img_color_pirple = findViewById(R.id.pirple);
-        img_color_pirple.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(249);
-            }
-        });
-        img_color_red = findViewById(R.id.red);
-        img_color_red.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(248);
-            }
-        });
-        img_color_tan = findViewById(R.id.tan);
-        img_color_tan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(251);
-            }
-        });
-        img_color_turcouse = findViewById(R.id.turqouse);
-        img_color_turcouse.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(243);
-            }
-        });
-        img_color_white = findViewById(R.id.white);
-        img_color_white.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(254);
-            }
-        });
-        img_color_yellow = findViewById(R.id.yellow);
-        img_color_yellow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                surfaceView.getRenderer().setColor(246);
-            }
-        });
-
-
         txt_isTouched = findViewById(R.id.txt_isTouched);
 
+//        colorRow = new ArrayList<>();
+//        colorRow.add(img_color_turcouse);
+//        colorRow.add(img_color_green);
+//        colorRow.add(img_color_light_green);
+//        colorRow.add(img_color_yellow);
+//
+//        colorRow.add(img_color_orange);
+//        colorRow.add(img_color_red);
+//        colorRow.add(img_color_pink);
+//        colorRow.add(img_color_pirple);
+//
+//        colorRow.add(img_color_blue);
+//        colorRow.add(img_color_light_blue);
+//        colorRow.add(img_color_brown);
+//        colorRow.add(img_color_light_brown);
+//
+//        colorRow.add(img_color_tan);
+//        colorRow.add(img_color_white);
+//        colorRow.add(img_color_grey);
+//        colorRow.add(img_color_black);
 
 
 
@@ -241,7 +191,145 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
         makeTransparentMiddleButtons();
 
+//        for (int i = 0; i< colorRow.size(); i++){
+//
+//            ImageView image = colorRow.get(i);
+//
+//            final int position = i;
+//
+//            image.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    Resources r = getResources();
+//
+//                    int imageHeight = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 35, r.getDisplayMetrics()));
+//                    int imageWidth = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 35, r.getDisplayMetrics()));
+//
+//                    resetColorsLayout();
+//                    surfaceView.getRenderer().setColor(colorOrder[position]);
+//                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageWidth
+//                            , imageHeight);
+//                    params.weight = 0.0f;
+//                    view.setLayoutParams(params);
+//                    view.setBackground(getResources().getDrawable(R.drawable.improved_shadow));
+//
+//
+//                    float elevation = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, r.getDisplayMetrics());
+//                    float translationZ = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, r.getDisplayMetrics());
+//
+//                    view.setElevation(elevation);
+//                    //view.setTranslationZ(translationZ);
+//
+//                }
+//            });
+//
+//
+//
+//
+//
+//
+//        }
 
+        //resetColorsLayout();
+
+        createColorRowLayout();
+
+        surfaceView.getRenderer().setBuildingMode();
+        img_add.setImageAlpha(nonTransparentAlpha);
+
+
+
+    }
+
+    private void createColorRowLayout(){
+
+        editor_color_row = findViewById(R.id.editor_colors_row);
+        colorRow = new ArrayList<>();
+
+
+
+        Resources r = getResources();
+
+        int colorsNumber = 16;
+
+        Display display = getWindowManager(). getDefaultDisplay();
+        Point size = new Point();
+        display. getSize(size);
+        int screenWidth = size. x;
+        final int intColorWidth = Math.round((float)screenWidth / colorsNumber);
+        final int intColorHeight = intColorWidth;
+
+        float floatColorSize = (float)screenWidth / colorsNumber;
+
+        for (int i = 0; i< 16; i++){
+            ImageView image = new ImageView(this);
+            final int color = colorOrder[i];
+            int resId = colorCodeToImageName.get(color);
+            Drawable d = r.getDrawable(resId);
+
+            image.setImageDrawable(d);
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
+            params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
+
+
+            image.setLayoutParams(params);
+
+
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    resetColorsLayout();
+
+
+                    surfaceView.getRenderer().setColor(color);
+                    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) view.getLayoutParams();
+                    params.width += 10;
+                    params.height += 10;
+                    view.setElevation(10);
+
+                    view.setLayoutParams(params);
+                    //params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
+
+                }
+            });
+
+
+            colorRow.add(image);
+            editor_color_row.addView(image);
+        }
+
+
+
+    }
+
+    private void resetColorsLayout(){
+
+        int colorsNumber = 16;
+
+        Display display = getWindowManager(). getDefaultDisplay();
+        Point size = new Point();
+        display. getSize(size);
+        int screenWidth = size. x;
+        final int intColorWidth = Math.round((float)screenWidth / colorsNumber);
+        final int intColorHeight = intColorWidth;
+        float floatColorSize = (float)screenWidth / colorsNumber;
+
+        for (int i = 0; i< colorRow.size(); i++){
+
+            ImageView image = colorRow.get(i);
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
+            params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
+
+            image.setElevation(0f);
+
+            image.setLayoutParams(params);
+
+
+
+        }
     }
 
     private void makeTransparentMiddleButtons(){

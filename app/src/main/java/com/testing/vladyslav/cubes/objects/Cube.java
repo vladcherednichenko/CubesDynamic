@@ -13,6 +13,7 @@ public class Cube {
     private int STRIDE = 0;
 
     public Point center;
+    public Color color;
 
     public float[] cubePositionData;
     public float[] cubeColorData;
@@ -23,6 +24,13 @@ public class Cube {
     public Cube(Point center, Color color){
 
         this.center = center;
+        this.color = color;
+
+        createCubeData();
+
+    }
+
+    public void createCubeData(){
 
         cubePositionData = CubeDataHolder.getInstance().getVertices().clone();
         cubeNormalData = CubeDataHolder.getInstance().getNormals();
@@ -48,16 +56,18 @@ public class Cube {
             }
         }
 
+
         translateCube(center);
 
     }
 
-//    public Cube(Point center){
-//
-//        this.center = center;
-//
-//    }
+    public void releaseCubeData(){
 
+        cubePositionData = null;
+        cubeNormalData = null;
+        cubeColorData = null;
+
+    }
 
 
     public void translateCube(Point vector){

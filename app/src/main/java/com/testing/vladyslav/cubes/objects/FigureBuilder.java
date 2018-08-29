@@ -2,7 +2,6 @@ package com.testing.vladyslav.cubes.objects;
 
 import android.opengl.GLES20;
 
-import com.testing.vladyslav.cubes.animation.Animator;
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.data.VertexArray;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
@@ -10,10 +9,11 @@ import com.testing.vladyslav.cubes.util.Color;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import static android.opengl.GLES20.GL_ARRAY_BUFFER;
-import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glBindBuffer;
+import static android.opengl.GLES20.glDeleteBuffers;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGenBuffers;
@@ -85,6 +85,8 @@ public class FigureBuilder {
         cubes = new ArrayList<>();
         reservedCubes = new ArrayList<>();
 
+        //cubeCenters.add(new Point(0f, 0f, 0f));
+
         for (Point center: cubeCenters){
 
             Color color = new Color("#f4b942");
@@ -109,19 +111,26 @@ public class FigureBuilder {
         vertexDataOffset = 0;
         vertexNormalDataOffset = 0;
 
+
         vertexPositionData = new float[CubeDataHolder.getInstance().sizeInVertex * POSITION_COMPONENT_COUNT * cubeNumber];
         vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
         vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
 
         for (Cube cube: cubes){
 
+            cube.createCubeData();
             appendCube(cube);
+            cube.releaseCubeData();
 
         }
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
         vertexNormalArray = new VertexArray(vertexNormalData);
+
+        vertexPositionData = null;
+        vertexNormalData = null;
+        vertexColorData = null;
 
     }
 
@@ -150,16 +159,66 @@ public class FigureBuilder {
 
     }
 
+    public void deleteCube(Point center){
+
+        if(center == null) return;
+        Iterator<Point> pointIterator = cubeCenters.iterator();
+
+        cubeNumber--;
+
+        while(pointIterator.hasNext()){
+
+            Point point = pointIterator.next();
+            if(point.equals(center)){
+
+                pointIterator.remove();
+
+                reservedCubeCenters = new ArrayList<>(cubeCenters);
+
+                break;
+
+            }
+
+        }
+
+
+        Iterator<Cube> iterator = cubes.iterator();
+
+        while(iterator.hasNext()){
+
+            Cube cube = iterator.next();
+            if(cube.center.equals(center)){
+
+                iterator.remove();
+
+                reservedCubes = new ArrayList<>(cubes);
+
+                buildFigure(cubes);
+
+                bindAttributesData();
+
+                break;
+
+            }
+
+        }
+
+
+    }
+
     public void changeCubeColor(Point center, int colorIndex){
 
         if(center == null) return;
 
-        for (Cube cube: cubes){
+        Iterator<Cube> iterator = cubes.iterator();
 
+        while(iterator.hasNext()){
+
+            Cube cube = iterator.next();
             if(cube.center.equals(center)){
 
-
-                cube = new Cube(center, new Color (colorCodeToHex.get(colorIndex)));
+                iterator.remove();
+                cubes.add(new Cube(center, new Color (colorCodeToHex.get(colorIndex))));
 
                 reservedCubes = new ArrayList<>(cubes);
                 reservedCubeCenters = new ArrayList<>(cubeCenters);
@@ -169,9 +228,11 @@ public class FigureBuilder {
                 bindAttributesData();
 
                 break;
+
             }
 
         }
+
 
 
     }
@@ -268,8 +329,11 @@ public class FigureBuilder {
             return;
         }
 
+        glDeleteBuffers(3, new int[]{vertexBufferPositionIdx, vertexBufferColorIdx, vertexBufferNormalIdx}, 0);
+
         final int buffers[] = new int[3];
         glGenBuffers(3, buffers, 0);
+        glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
         vertexBufferPositionIdx = buffers[0];
         vertexBufferColorIdx = buffers[1];
@@ -279,11 +343,7 @@ public class FigureBuilder {
         vertexColorArray.bindBufferToVBO(vertexBufferColorIdx);
         vertexNormalArray.bindBufferToVBO(vertexBufferNormalIdx);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        vertexPosArray = null;
-        vertexColorArray = null;
-        vertexNormalArray = null;
 
 
     }

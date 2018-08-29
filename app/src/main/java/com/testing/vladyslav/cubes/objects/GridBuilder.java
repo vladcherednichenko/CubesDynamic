@@ -55,7 +55,7 @@ public class GridBuilder {
         this.gridHeight = height;
 
         buildGrid(gridSize, gridHeight);
-        buildTites(gridSize, gridHeight);
+        buildTiles(gridSize, gridHeight);
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
@@ -112,7 +112,7 @@ public class GridBuilder {
 
     }
 
-    private void buildTites(float gridSize, float gridHeight){
+    private void buildTiles(float gridSize, float gridHeight){
 
         tileCenters = new ArrayList<>();
 
@@ -141,7 +141,7 @@ public class GridBuilder {
 
     public void bindAttributesData(){
 
-        vertexNumber = vertexPositionData.length;
+        vertexNumber = vertexPositionData.length / POSITION_COMPONENT_COUNT;
         final int buffers[] = new int[2];
         glGenBuffers(2, buffers, 0);
 

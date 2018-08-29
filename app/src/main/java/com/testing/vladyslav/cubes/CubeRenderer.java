@@ -302,6 +302,12 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         }
 
+        if(shouldDeleteCube){
+            builder.deleteCube(touchResult.touchedCubeCenter);
+            shouldDeleteCube = false;
+
+        }
+
         if(shouldBackwards){
             builder.backward();
             shouldBackwards = false;
