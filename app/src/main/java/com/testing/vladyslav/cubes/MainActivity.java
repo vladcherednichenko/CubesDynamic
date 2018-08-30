@@ -1,29 +1,24 @@
 package com.testing.vladyslav.cubes;
 
-import android.app.ActionBar;
-import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.SparseIntArray;
-import android.util.TypedValue;
 import android.view.Display;
-import android.view.DragEvent;
-import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
+import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
 
 public class MainActivity extends AppCompatActivity implements CubeRenderer.CubeRendererListener{
 
@@ -34,26 +29,16 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
     private ImageView img_change_color;
     private ImageView img_delete;
 
-    private ImageView img_color_turcouse;
-    private ImageView img_color_green;
-    private ImageView img_color_light_green;
-    private ImageView img_color_yellow;
-    private ImageView img_color_orange;
-    private ImageView img_color_red;
-    private ImageView img_color_pink;
-    private ImageView img_color_pirple;
-    private ImageView img_color_blue;
-    private ImageView img_color_light_blue;
-    private ImageView img_color_brown;
-    private ImageView img_color_light_brown;
-    private ImageView img_color_tan;
-    private ImageView img_color_white;
-    private ImageView img_color_grey;
-    private ImageView img_color_black;
+    private ImageView img_shadow_right;
+    private ImageView img_shadow_left;
 
-    private RelativeLayout editor_color_row;
+    private CustomRelativeLayout editor_color_row;
 
     private TextView txt_isTouched;
+    private LinearLayout menu;
+    RelativeLayout fullscreen;
+
+    private int colorsNumber = 16;
 
     private int graphicsQuality = 1;
     private int nonTransparentAlpha = 255;
@@ -114,7 +99,18 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
         setContentView(R.layout.activity_main);
 
         surfaceView = findViewById(R.id.surfaceView);
+        menu = findViewById(R.id.menu_layout);
+        menu.setVisibility(View.INVISIBLE);
+        fullscreen = findViewById(R.id.fullscreen_layout);
+        fullscreen.setVisibility(View.INVISIBLE);
 
+        findViewById(R.id.img_menu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                menu.setVisibility(menu.getVisibility() == View.INVISIBLE? View.VISIBLE: View.INVISIBLE);
+                fullscreen.setVisibility(menu.getVisibility() == View.INVISIBLE? View.VISIBLE: View.INVISIBLE);
+            }
+        });
 
         img_cancel = findViewById(R.id.img_cancel);
         img_cancel.setOnClickListener(new View.OnClickListener() {
@@ -164,73 +160,9 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
         txt_isTouched = findViewById(R.id.txt_isTouched);
 
-//        colorRow = new ArrayList<>();
-//        colorRow.add(img_color_turcouse);
-//        colorRow.add(img_color_green);
-//        colorRow.add(img_color_light_green);
-//        colorRow.add(img_color_yellow);
-//
-//        colorRow.add(img_color_orange);
-//        colorRow.add(img_color_red);
-//        colorRow.add(img_color_pink);
-//        colorRow.add(img_color_pirple);
-//
-//        colorRow.add(img_color_blue);
-//        colorRow.add(img_color_light_blue);
-//        colorRow.add(img_color_brown);
-//        colorRow.add(img_color_light_brown);
-//
-//        colorRow.add(img_color_tan);
-//        colorRow.add(img_color_white);
-//        colorRow.add(img_color_grey);
-//        colorRow.add(img_color_black);
-
-
-
         surfaceView.setListener(this);
 
         makeTransparentMiddleButtons();
-
-//        for (int i = 0; i< colorRow.size(); i++){
-//
-//            ImageView image = colorRow.get(i);
-//
-//            final int position = i;
-//
-//            image.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    Resources r = getResources();
-//
-//                    int imageHeight = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 35, r.getDisplayMetrics()));
-//                    int imageWidth = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 35, r.getDisplayMetrics()));
-//
-//                    resetColorsLayout();
-//                    surfaceView.getRenderer().setColor(colorOrder[position]);
-//                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageWidth
-//                            , imageHeight);
-//                    params.weight = 0.0f;
-//                    view.setLayoutParams(params);
-//                    view.setBackground(getResources().getDrawable(R.drawable.improved_shadow));
-//
-//
-//                    float elevation = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, r.getDisplayMetrics());
-//                    float translationZ = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, r.getDisplayMetrics());
-//
-//                    view.setElevation(elevation);
-//                    //view.setTranslationZ(translationZ);
-//
-//                }
-//            });
-//
-//
-//
-//
-//
-//
-//        }
-
-        //resetColorsLayout();
 
         createColorRowLayout();
 
@@ -241,16 +173,132 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
     }
 
+    public void saveAsClicked(View v){
+
+        EnterFigureNameDialog dialog = new EnterFigureNameDialog(MainActivity.this);
+        dialog.setListener(new EnterFigureNameDialog.FigureNameDialogListener() {
+            @Override
+            public void enterFigureNamePressed(String code) {
+
+            }
+        });
+        dialog.show();
+
+    }
+
+
+    public void openClicked(View v){
+
+    }
+
+    public void saveClicked(View v){
+
+    }
+
+    public void saveModel(String name){
+
+        UserModel model = new UserModel();
+
+        model.setName(name);
+        //model.
+
+    }
+
     private void createColorRowLayout(){
 
         editor_color_row = findViewById(R.id.editor_colors_row);
+        editor_color_row.setActivity(this);
+        editor_color_row.setOnColorTouchListener(new CustomRelativeLayout.OnColorTouchListener() {
+            @Override
+            public void onTouch(int colorPosition) {
+                selectColor(colorPosition);
+                setShadows(colorPosition);
+            }
+        });
+
         colorRow = new ArrayList<>();
-
-
 
         Resources r = getResources();
 
-        int colorsNumber = 16;
+        for (int i = 0; i< colorsNumber; i++){
+            ImageView image = new ImageView(this);
+            final int color = colorOrder[i];
+            int resId = colorCodeToImageName.get(color);
+            Drawable d = r.getDrawable(resId);
+
+            image.setImageDrawable(d);
+
+            colorRow.add(image);
+            editor_color_row.addView(image);
+        }
+
+        img_shadow_left = new ImageView(this);
+        img_shadow_left.setImageDrawable(getResources().getDrawable(R.drawable.shadow_left));
+
+        img_shadow_right = new ImageView(this);
+        img_shadow_right.setImageDrawable(getResources().getDrawable(R.drawable.shadow_right));
+
+        editor_color_row.addView(img_shadow_left);
+        editor_color_row.addView(img_shadow_right);
+        resetColorsLayout();
+        setShadows(0);
+
+        img_shadow_left.setVisibility(View.INVISIBLE);
+        img_shadow_right.setVisibility(View.INVISIBLE);
+
+
+    }
+
+    private void selectColor(int colorPosition){
+
+        float scaleSize = 1.4f;
+        int elevation = 10;
+        int shadowSize = 0;
+
+        ImageView image = colorRow.get(colorPosition);
+
+        resetColorsLayout();
+
+        surfaceView.getRenderer().setColor(colorOrder[colorPosition]);
+
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) image.getLayoutParams();
+
+        //shadow
+        image.setElevation(elevation);
+
+        //size
+        image.setTranslationY(params.height - params.height * scaleSize + shadowSize + elevation);
+        int deltaWidth = Math.round(params.height * scaleSize) - params.height;
+
+        params.width = Math.round(params.width * scaleSize);
+        params.height = Math.round(params.height * scaleSize);
+
+
+        //margins
+        int marginBottom = Math.round(params.height - params.height * scaleSize);
+        int marginLeft = params.leftMargin;
+        int marginRight = params.rightMargin;
+
+        if (colorPosition == 0) {
+            marginLeft = -(shadowSize + elevation);
+        }else if(colorPosition == colorOrder.length-1){
+            marginLeft -= (shadowSize + elevation + Math.round(deltaWidth/8));
+            marginRight = -(shadowSize + elevation);
+        }else{
+
+            marginLeft = Math.round((float)params.leftMargin - (float)deltaWidth /2);
+
+        }
+
+        params.setMargins(marginLeft, params.topMargin, marginRight, marginBottom);
+        image.setLayoutParams(params);
+
+    }
+
+    private void setShadows (int selectedColorPosition){
+
+        img_shadow_left.setVisibility(View.VISIBLE);
+        img_shadow_right.setVisibility(View.VISIBLE);
 
         Display display = getWindowManager(). getDefaultDisplay();
         Point size = new Point();
@@ -261,46 +309,27 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
         float floatColorSize = (float)screenWidth / colorsNumber;
 
-        for (int i = 0; i< 16; i++){
-            ImageView image = new ImageView(this);
-            final int color = colorOrder[i];
-            int resId = colorCodeToImageName.get(color);
-            Drawable d = r.getDrawable(resId);
+        RelativeLayout.LayoutParams leftShadowParams = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
+        RelativeLayout.LayoutParams rightShadowParams = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
 
-            image.setImageDrawable(d);
+        leftShadowParams.setMargins(Math.round(floatColorSize * (selectedColorPosition-1)), 0, 0, 0);
+        rightShadowParams.setMargins(Math.round(floatColorSize * (selectedColorPosition+1)), 0, 0, 0);
 
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
-            params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
+        img_shadow_right.setLayoutParams(rightShadowParams);
+        img_shadow_left.setLayoutParams(leftShadowParams);
 
-
-            image.setLayoutParams(params);
-
-
-            image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    resetColorsLayout();
-
-
-                    surfaceView.getRenderer().setColor(color);
-                    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) view.getLayoutParams();
-                    params.width += 10;
-                    params.height += 10;
-                    view.setElevation(10);
-
-                    view.setLayoutParams(params);
-                    //params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
-
-                }
-            });
-
-
-            colorRow.add(image);
-            editor_color_row.addView(image);
+        if(selectedColorPosition == 0){
+            img_shadow_left.setVisibility(View.INVISIBLE);
+        }else if(selectedColorPosition == colorRow.size()) {
+            img_shadow_right.setVisibility(View.INVISIBLE);
         }
 
 
+    }
+
+    private int viewToPosition(View v){
+
+        return  colorRow.indexOf((ImageView)v);
 
     }
 
@@ -320,13 +349,18 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
             ImageView image = colorRow.get(i);
 
+
+
+
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
             params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
 
+            image.setPadding(0, 0, 0, 0);
+
             image.setElevation(0f);
+            image.setTranslationY(0f);
 
             image.setLayoutParams(params);
-
 
 
         }

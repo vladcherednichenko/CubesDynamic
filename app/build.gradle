@@ -18,6 +18,15 @@ android {
     }
 }
 
+repositories {
+
+    maven {
+        url "https://jitpack.io"
+    }
+    mavenCentral()
+    google()
+}
+
 dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -27,6 +36,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
+
+    // Room
+    implementation 'android.arch.persistence.room:runtime:1.0.0'
+    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
+    implementation 'com.github.humazed:RoomAsset:v1.0'
 
 
 }
