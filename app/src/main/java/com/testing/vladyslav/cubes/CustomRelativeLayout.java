@@ -1,6 +1,5 @@
 package com.testing.vladyslav.cubes;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.AttributeSet;
@@ -11,7 +10,7 @@ import android.widget.RelativeLayout;
 public class CustomRelativeLayout extends RelativeLayout{
 
     private OnColorTouchListener listener;
-    private MainActivity activity;
+    private EditorActivity activity;
 
     public interface OnColorTouchListener{
 
@@ -35,7 +34,7 @@ public class CustomRelativeLayout extends RelativeLayout{
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public void setActivity(MainActivity activity){
+    public void setActivity(EditorActivity activity){
         this.activity = activity;
     }
 

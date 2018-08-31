@@ -24,7 +24,7 @@ public class EnterFigureNameDialog extends Dialog implements
 
         public interface FigureNameDialogListener {
 
-            void enterFigureNamePressed(String code);
+            void enterFigureNamePressed(String name);
 
         }
 

@@ -1,10 +1,12 @@
 package com.testing.vladyslav.cubes;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.ImageView;
@@ -13,14 +15,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
+import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
+import com.testing.vladyslav.cubes.presenters.EditorActivityPresenter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class MainActivity extends AppCompatActivity implements CubeRenderer.CubeRendererListener{
+public class EditorActivity extends AppCompatActivity implements CubeRenderer.CubeRendererListener, EditorActivityPresenter.EditorActivityView {
 
 
     private ImageView img_cancel;
@@ -45,6 +49,9 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
     private CubeSurfaceView surfaceView;
     private ArrayList<ImageView> colorRow;
+
+    private UserModel userModel;
+    private EditorActivityPresenter presenter;
 
     private short[] colorOrder = new short[]{243, 244, 245, 246, 247, 248, 250, 249, 241, 242, 253, 252, 251, 254, 255, 240};
 
@@ -76,6 +83,9 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        UserModelsDBLoader modelsDBModel = new UserModelsDBLoader(getApplicationContext());
+        presenter = new EditorActivityPresenter(modelsDBModel);
+        presenter.attachView(this);
 
         int quality = getIntent().getIntExtra("quality", 1);
 
@@ -95,6 +105,16 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
             }
 
         }
+
+        userModel = new UserModel();
+
+        userModel.setName("Patronus");
+        userModel.setCubeNumber(5);
+        userModel.setSizeX(3);
+        userModel.setSizeY(3);
+        userModel.setSizeZ(3);
+        userModel.setCubes("A hell lot of cubes");
+
 
         setContentView(R.layout.activity_main);
 
@@ -175,10 +195,12 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
     public void saveAsClicked(View v){
 
-        EnterFigureNameDialog dialog = new EnterFigureNameDialog(MainActivity.this);
+        EnterFigureNameDialog dialog = new EnterFigureNameDialog(EditorActivity.this);
         dialog.setListener(new EnterFigureNameDialog.FigureNameDialogListener() {
             @Override
-            public void enterFigureNamePressed(String code) {
+            public void enterFigureNamePressed(String name) {
+
+                presenter.saveUserModel(name);
 
             }
         });
@@ -189,20 +211,14 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
 
     public void openClicked(View v){
 
+        presenter.openUserModel();
+
     }
 
     public void saveClicked(View v){
 
     }
 
-    public void saveModel(String name){
-
-        UserModel model = new UserModel();
-
-        model.setName(name);
-        //model.
-
-    }
 
     private void createColorRowLayout(){
 
@@ -387,5 +403,10 @@ public class MainActivity extends AppCompatActivity implements CubeRenderer.Cube
     @Override
     public void onTouched(String txt) {
         setTxt_isTouchedText(txt);
+    }
+
+    @Override
+    public Context getContext() {
+        return getApplicationContext();
     }
 }

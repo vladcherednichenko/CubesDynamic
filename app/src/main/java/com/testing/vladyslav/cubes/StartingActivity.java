@@ -3,7 +3,6 @@ package com.testing.vladyslav.cubes;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
@@ -35,7 +34,7 @@ public class StartingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                Intent intent = new Intent(getApplicationContext(), EditorActivity.class);
                 intent.putExtra("quality", 0);
                 startActivity(intent);
             }
@@ -45,7 +44,7 @@ public class StartingActivity extends AppCompatActivity {
         btnMedium.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                Intent intent = new Intent(getApplicationContext(), EditorActivity.class);
                 intent.putExtra("quality", 1);
                 startActivity(intent);
             }
@@ -54,7 +53,7 @@ public class StartingActivity extends AppCompatActivity {
         btnHigh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                Intent intent = new Intent(getApplicationContext(), EditorActivity.class);
                 intent.putExtra("quality", 2);
                 startActivity(intent);
             }
