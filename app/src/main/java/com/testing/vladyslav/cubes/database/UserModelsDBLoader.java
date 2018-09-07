@@ -19,7 +19,7 @@ public class UserModelsDBLoader {
 
     public UserModelsDBLoader(Context context){
 
-        final Migration MIGRATION = new Migration(0, 1) {
+        final Migration MIGRATION = new Migration(1, 2) {
             @Override
             public void migrate(SupportSQLiteDatabase database) {
 
@@ -46,6 +46,22 @@ public class UserModelsDBLoader {
 
     }
 
+    public void deleteUserModel(UserModel model, DeleteUserModelCallback callback) {
+
+        ArrayList<UserModel> models = new ArrayList<>();
+        models.add(model);
+        new UserModelsDeleteTask(models, callback).execute(null, null, null);
+
+    }
+
+    public void updateUserModel(UserModel userModel, UpdateModelCallback callback){
+
+        new UserModelsUpdateTask(userModel, callback).execute(null, null, null);
+
+    }
+
+
+
     //callbacks
     public interface LoadUserModelsCallback{
 
@@ -58,6 +74,20 @@ public class UserModelsDBLoader {
         void onUserModelsInsert();
 
     }
+
+    public interface DeleteUserModelCallback{
+
+        void onUserModelsDeleted();
+
+    }
+
+    public interface UpdateModelCallback{
+
+        void onUserModelUpdated();
+
+    }
+
+
 
     //async tasks
     private static class UserModelsLoadAsyncTask extends AsyncTask<Void, Void, Void>{
@@ -107,6 +137,61 @@ public class UserModelsDBLoader {
         protected void onPostExecute(Void aVoid) {
             if (callback!= null){
                 callback.onUserModelsInsert();
+            }
+        }
+    }
+
+    private static class UserModelsDeleteTask extends AsyncTask<Void, Void, Void>{
+
+        private ArrayList<UserModel> modelList;
+        private final DeleteUserModelCallback callback;
+
+        public UserModelsDeleteTask(ArrayList<UserModel> modelList ,DeleteUserModelCallback callback){
+            this.callback = callback;
+            this.modelList = modelList;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            for (UserModel model: modelList){
+                mainDatabase.daoAccess().deleteUserModel(model.getId());
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (callback!= null){
+                callback.onUserModelsDeleted();
+            }
+        }
+    }
+
+    private static class UserModelsUpdateTask extends AsyncTask<Void, Void, Void>{
+
+        private UserModel userModel;
+        private final UpdateModelCallback callback;
+
+        public UserModelsUpdateTask(UserModel userModel ,UpdateModelCallback callback){
+            this.callback = callback;
+            this.userModel = userModel;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            mainDatabase.daoAccess().updateUserModel(userModel);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (callback!= null){
+                callback.onUserModelUpdated();
             }
         }
     }

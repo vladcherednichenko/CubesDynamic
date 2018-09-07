@@ -1,24 +1,28 @@
 package com.testing.vladyslav.cubes;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
+import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.objects.GridBuilder;
 import com.testing.vladyslav.cubes.objects.FigureBuilder;
-import com.testing.vladyslav.cubes.objects.Point;
+import com.testing.vladyslav.cubes.objects.PixioPoint;
 import com.testing.vladyslav.cubes.programs.GridShaderProgram;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
-import com.testing.vladyslav.cubes.util.Geometry;
+import com.testing.vladyslav.cubes.util.ImagesHelper;
 import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glVertexAttribPointer;
 import static android.opengl.Matrix.invertM;
@@ -26,14 +30,15 @@ import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.rotateM;
 import static android.opengl.Matrix.translateM;
-import static com.testing.vladyslav.cubes.util.ObjectSelectHelper.convertNormalized2DPointToRay;
-import static com.testing.vladyslav.cubes.util.ObjectSelectHelper.getTouchedCubeSide;
 
 public class CubeRenderer implements GLSurfaceView.Renderer {
     private Context context;
 
-    private volatile float xAngle = 0f;
-    private volatile float yAngle = 0f;
+    private volatile float xAngle = -45f;
+    private volatile float yAngle = 10f;
+
+    private float screenshotXAngle = -45f;
+    private float screenshotYAngle = 10f;
 
     private static final String TAG = "CubeRenderer";
 
@@ -97,19 +102,25 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private boolean shouldAddCube = false;
     private boolean shouldEditCubeColor = false;
     private boolean shouldDeleteCube = false;
+    private boolean shouldMakeScreenshot = false;
 
 
     private float scaleFactor = 1f;
     private ObjectSelectHelper.TouchResult touchResult;
+    private UserModel renderingModel;
 
     private int currentColorIndex = 240;
 
     private boolean shouldBackwards = false;
     private boolean shouldForward = false;
+    private boolean shouldLoadNewModel = false;
 
     private boolean buildingMode = false;
     private boolean colorEditingMode = false;
     private boolean deleteMode = false;
+
+    private int width;
+    private int height;
 
 
     //connection with the main activity
@@ -119,9 +130,20 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         void onTouched(String txt);
     }
 
+    private ScreenshotHandler screenshotHandler;
+
+    public interface ScreenshotHandler{
+        void makeScreenshot(Bitmap bitmap);
+    }
+
     public void backward(){shouldBackwards = true;}
 
     public void forward(){shouldForward = true;}
+
+    public void makeScreenshot(ScreenshotHandler screenshotHandler){
+        this.shouldMakeScreenshot = true;
+        this.screenshotHandler = screenshotHandler;
+    }
 
     public void resetModes(){buildingMode = false; colorEditingMode = false; deleteMode = false;}
 
@@ -168,11 +190,10 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         lowerGrid = true;
     }
 
-
     public void handleTouchPress(float normalizedX, float normalizedY){
 
-        ArrayList<Point> cubeCenters = new ArrayList<>(builder.getCubeCenters());
-        ArrayList<Point> tileCenters = new ArrayList<>(gridBuilder.getTileCenters());
+        ArrayList<PixioPoint> cubeCenters = new ArrayList<>(builder.getCubeCenters());
+        ArrayList<PixioPoint> tileCenters = new ArrayList<>(gridBuilder.getTileCenters());
 
         cubeCenters.addAll(tileCenters);
 
@@ -201,6 +222,18 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     }
 
+    public UserModel getRenderingModel(){
+
+        return builder.getModel();
+
+    }
+
+    public void setRenderingModel(UserModel model){
+
+        this.renderingModel = model;
+        shouldLoadNewModel = true;
+
+    }
 
     @Override
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
@@ -244,6 +277,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         cubeShader = new ShaderProgram(context);
         builder = new FigureBuilder();
+        builder.setGridBuilder(gridBuilder);
         builder.bindAttributesData();
 
 
@@ -266,6 +300,9 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         final float near = 3.0f;
         final float far = 100.0f;
 
+        this.width = width;
+        this.height = height;
+
         //Matrix.frustumM(projectionMatrix, 0, left, right, bottom, top, near, far);
 
         Matrix.orthoM(projectionMatrix, 0, left,right, bottom, top, near, far);
@@ -278,7 +315,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 glUnused) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
 
 
         //add new grid if needed
@@ -318,14 +354,34 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             shouldForward = false;
         }
 
+        if(shouldLoadNewModel){
+            builder.setModel(renderingModel);
+            shouldLoadNewModel = false;
+        }
+
 
 
         //manipulations with the cubes model matrix
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -7.0f);
 
-        rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
-        rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
+
+        if (shouldMakeScreenshot){
+
+            PixioPoint figureCenter = builder.getFigureCenter();
+
+            Matrix.translateM(modelMatrix, 0, -figureCenter.x, 0.0f, 0f);
+            Matrix.translateM(modelMatrix, 0, 0.0f, -figureCenter.y, 0f);
+            Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -figureCenter.z);
+
+            rotateM(modelMatrix, 0, screenshotYAngle, 1f, 0f, 0f);
+            rotateM(modelMatrix, 0, screenshotXAngle, 0f, 1f, 0f);
+
+        }else{
+            rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
+            rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
+        }
+
 
 
         //draw the grid
@@ -336,7 +392,11 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         gridShader.setScaleFactor(scaleFactor);
 
 
-        gridBuilder.draw(gridShader);
+        if (!shouldMakeScreenshot) {
+
+            gridBuilder.draw(gridShader);
+
+        }
 
 
         //draw the figure
@@ -404,9 +464,33 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
                 rightLightPosInEyeSpace,
                 topLightPosInEyeSpace,
                 bottomLightPosInEyeSpace);
-        cubeShader.setScaleFactor(scaleFactor);
+
+        if (shouldMakeScreenshot){
+            float figureSize = builder.getFigureMaxXYZDimen();
+
+            if(figureSize>8){
+                float scale = 8/figureSize;
+                cubeShader.setScaleFactor(scale);
+            }
+
+
+        }else{
+            cubeShader.setScaleFactor(scaleFactor);
+        }
+
 
         builder.draw(cubeShader);
+
+        if(shouldMakeScreenshot){
+
+            if(screenshotHandler != null){
+
+                screenshotHandler.makeScreenshot(getScreenshot());
+
+            }
+            shouldMakeScreenshot = false;
+
+        }
 
 
     }
@@ -419,6 +503,27 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         return MVPMatrix;
 
+    }
+
+    private Bitmap getScreenshot(){
+        int screenshotSize = width * height;
+        ByteBuffer bb = ByteBuffer.allocateDirect(screenshotSize * 4);
+        bb.order(ByteOrder.nativeOrder());
+        glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, bb);
+        int pixelsBuffer[] = new int[screenshotSize];
+        bb.asIntBuffer().get(pixelsBuffer);
+        bb = null;
+
+        for (int i = 0; i < screenshotSize; ++i) {
+            // The alpha and green channels' positions are preserved while the      red and blue are swapped
+            pixelsBuffer[i] = ((pixelsBuffer[i] & 0xff00ff00)) |    ((pixelsBuffer[i] & 0x000000ff) << 16) | ((pixelsBuffer[i] & 0x00ff0000) >> 16);
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        bitmap.setPixels(pixelsBuffer, screenshotSize-width, -width, 0, 0, width, height);
+
+
+        return bitmap;
     }
 
 

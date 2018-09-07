@@ -1,6 +1,6 @@
 package com.testing.vladyslav.cubes.util;
 
-import com.testing.vladyslav.cubes.objects.Point;
+import com.testing.vladyslav.cubes.objects.PixioPoint;
 
 public class Geometry {
 
@@ -11,7 +11,7 @@ public class Geometry {
     }
 
 
-    public static float distanceBetween(Point point, Ray ray) {
+    public static float distanceBetween(PixioPoint point, Ray ray) {
         Vector p1ToPoint = vectorBetween(ray.point, point);
         Vector p2ToPoint = vectorBetween(ray.point.translate(ray.vector), point);
 
@@ -31,9 +31,9 @@ public class Geometry {
 
 
     public static class Ray {
-        public final Point point;
+        public final PixioPoint point;
         public final Vector vector;
-        public Ray(Point point, Vector vector) {
+        public Ray(PixioPoint point, Vector vector) {
             this.point = point;
             this.vector = vector;
         }
@@ -47,7 +47,7 @@ public class Geometry {
             this.z = z;
         }
 
-        public Vector (Point a, Point b){
+        public Vector (PixioPoint a, PixioPoint b){
 
             this.x = b.x - a.x;
             this.y = b.y - a.y;
@@ -76,14 +76,14 @@ public class Geometry {
 
 
     public static class Sphere {
-        public final Point center;
+        public final PixioPoint center;
         public final float radius;
-        public Sphere(Point center, float radius) {
+        public Sphere(PixioPoint center, float radius) {
             this.center = center;
             this.radius = radius;
         }
     }
-    public static Vector vectorBetween(Point from, Point to) {
+    public static Vector vectorBetween(PixioPoint from, PixioPoint to) {
         return new Vector(
                 to.x - from.x,
                 to.y - from.y,
@@ -95,10 +95,10 @@ public class Geometry {
 
 
         public String name;
-        public Point p, q, r;
+        public PixioPoint p, q, r;
         public Vector normal;
 
-        public Parallelogram(Point p, Point q, Point r, Vector normal, String name) {
+        public Parallelogram(PixioPoint p, PixioPoint q, PixioPoint r, Vector normal, String name) {
             this.p = p;
             this.q = q;
             this.r = r;
@@ -107,7 +107,7 @@ public class Geometry {
         }
 
 
-        public boolean pointInside(Point a){
+        public boolean pointInside(PixioPoint a){
 
             Vector pq = new Vector (this.p, q);
             Vector pr = new Vector (this.p, r);

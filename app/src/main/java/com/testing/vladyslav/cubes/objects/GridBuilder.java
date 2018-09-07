@@ -4,13 +4,14 @@ import android.opengl.GLES20;
 
 import com.testing.vladyslav.cubes.data.VertexArray;
 import com.testing.vladyslav.cubes.programs.GridShaderProgram;
-import com.testing.vladyslav.cubes.util.Color;
+import com.testing.vladyslav.cubes.util.PixioColor;
 
 import java.util.ArrayList;
 
 import static android.opengl.GLES20.GL_ARRAY_BUFFER;
 import static android.opengl.GLES20.GL_LINES;
 import static android.opengl.GLES20.glBindBuffer;
+import static android.opengl.GLES20.glDeleteBuffers;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGenBuffers;
@@ -23,7 +24,12 @@ public class GridBuilder {
     private int STRIDE = 0;
     private float cubeSize = 1f;
 
-    private int gridSize = 11;
+
+    public int maxGridSize = 24;
+    public int minGridSize = 10;
+    public int gridSize = 10;
+
+
     private float gridHeight = -1.5f;
     private int vertexNumber;
 
@@ -40,13 +46,50 @@ public class GridBuilder {
     private int vertexColorDataOffset = 0;
 
 
-    private ArrayList<Point> tileCenters;
+    private ArrayList<PixioPoint> tileCenters;
     private ArrayList<Line> grid;
 
 
-    public ArrayList<Point> getTileCenters(){
+    public ArrayList<PixioPoint> getTileCenters(){return tileCenters; }
+    public boolean isGridMinimumSize(){return gridSize == minGridSize;}
+    public boolean isGridMaximumSize(){return gridSize == maxGridSize;}
 
-        return tileCenters;
+    public void expandGrid(){
+
+        if(!isGridMaximumSize()){
+
+            gridSize+=2;
+            buildGrid(gridSize, gridHeight);
+            buildTiles(gridSize, gridHeight);
+            bindAttributesData();
+
+        }
+
+    }
+
+    public void narrowGrid(){
+
+        if(!isGridMinimumSize()){
+
+            gridSize-=2;
+            buildGrid(gridSize, gridHeight);
+            buildTiles(gridSize, gridHeight);
+            bindAttributesData();
+
+        }
+
+    }
+
+    public void setGridSize(int size){
+
+        if(size > maxGridSize) size = maxGridSize;
+        if(size < minGridSize) size = minGridSize;
+
+        gridSize = size;
+
+        buildGrid(gridSize, gridHeight);
+        buildTiles(gridSize, gridHeight);
+        bindAttributesData();
 
     }
 
@@ -57,8 +100,6 @@ public class GridBuilder {
         buildGrid(gridSize, gridHeight);
         buildTiles(gridSize, gridHeight);
 
-        vertexPosArray = new VertexArray(vertexPositionData);
-        vertexColorArray = new VertexArray(vertexColorData);
 
 
     }
@@ -68,13 +109,15 @@ public class GridBuilder {
         vertexPositionData = new float[(size+1) * 4 * POSITION_COMPONENT_COUNT];
         vertexColorData = new float[(size+1) * 4 * COLOR_COORDINATES_COMPONENT_COUNT];
 
-        Color color = new Color("#828282");
+        resetOffsets();
 
-        Point defaultHorizontalStartPoint = new Point(0f, height, -size / 2f);
-        Point defaultHorizontalEndPoint = new Point(0f, height, size / 2f);
+        PixioColor color = new PixioColor("#828282");
 
-        Point defaultVerticalStartPoint = new Point(-size / 2f, height, 0f);
-        Point defaultVerticalEndPoint = new Point(size / 2f, height, 0f);
+        PixioPoint defaultHorizontalStartPoint = new PixioPoint(0f, height, -size / 2f);
+        PixioPoint defaultHorizontalEndPoint = new PixioPoint(0f, height, size / 2f);
+
+        PixioPoint defaultVerticalStartPoint = new PixioPoint(-size / 2f, height, 0f);
+        PixioPoint defaultVerticalEndPoint = new PixioPoint(size / 2f, height, 0f);
 
 
         grid = new ArrayList<>();
@@ -88,7 +131,7 @@ public class GridBuilder {
         defaultHorizontalEndPoint.translateX((-1) * (float)size / 2f);
 
 
-        //Point default
+        //PixioPoint default
 
         //create horizontal lines
         for (int i = 0; i< linesInOneRow; i++){
@@ -108,7 +151,13 @@ public class GridBuilder {
 
         }
 
-        resetOffsets();
+        vertexNumber = vertexPositionData.length / POSITION_COMPONENT_COUNT;
+
+        vertexPosArray = new VertexArray(vertexPositionData);
+        vertexColorArray = new VertexArray(vertexColorData);
+
+        vertexColorData = null;
+        vertexPositionData = null;
 
     }
 
@@ -116,7 +165,7 @@ public class GridBuilder {
 
         tileCenters = new ArrayList<>();
 
-        Point defaultTilePosition = new Point(-(float)gridSize/2 + cubeSize/2, gridHeight - cubeSize / 2, -(float)gridSize/2 + cubeSize/2);
+        PixioPoint defaultTilePosition = new PixioPoint(-(float)gridSize/2 + cubeSize/2, gridHeight - cubeSize / 2, -(float)gridSize/2 + cubeSize/2);
 
         //tileCenters.add(defaultTilePosition.clone());
 
@@ -125,7 +174,7 @@ public class GridBuilder {
 
             for (int j = 0; j< gridSize; j++){
 
-                Point center = defaultTilePosition.clone();
+                PixioPoint center = defaultTilePosition.clone();
                 center.translateX(cubeSize * j);
 
                 tileCenters.add(center);
@@ -141,7 +190,8 @@ public class GridBuilder {
 
     public void bindAttributesData(){
 
-        vertexNumber = vertexPositionData.length / POSITION_COMPONENT_COUNT;
+        glDeleteBuffers(2, new int[]{vertexBufferPositionIdx, vertexBufferColorIdx}, 0);
+
         final int buffers[] = new int[2];
         glGenBuffers(2, buffers, 0);
 
@@ -225,10 +275,10 @@ public class GridBuilder {
         public float[] linePositionData;
         public float[] lineColorData;
 
-        private Point startPoint;
-        private Point endPoint;
+        private PixioPoint startPoint;
+        private PixioPoint endPoint;
 
-        public Line(Point start, Point end, Color color){
+        public Line(PixioPoint start, PixioPoint end, PixioColor color){
             this.startPoint = start;
             this.endPoint = end;
 

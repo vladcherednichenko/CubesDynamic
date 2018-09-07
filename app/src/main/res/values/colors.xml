@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+
     <color name="colorShadow">#00ffffff</color>
-    <color name="colorWhite">#00ffffff</color>
+    <color name="colorWhite">#ffffff</color>
     <color name="colorBlack">#000000</color>
+
+    <color name="colorMenuHighlightedText">#2bfff1</color>
+    <color name="colorMenuText">#ffffff</color>
+    <color name="colorMenuInactiveText">#7bffffff</color>
+    <color name="colorSetText">#919191</color>
+    <color name="colorCategoryText">#ffffff</color>
+    <color name="colorFloatingMenuBtnBG">#ffffff</color>
+    <color name="colorPrimary">#303f9f</color>
+    <color name="colorPrimaryDark">#303f9f</color>
+    <color name="colorAccent">#ff4081</color>
+    <color name="year">#999999</color>
+    <color name="title">#222222</color>
+
+    <color name = "colorHighlightedText">#00cfca</color>
+
+    <color name="black_overlay">#66000000</color>
+    <color name="colorWhiteTransparent">#7dffffff</color>
+    <color name="blured_babble_bg">#dbffffff</color>
+
+    <color name="color100">#cdcfd0</color>
+    <color name="color200">#bec0c1</color>
+    <color name="color400">#afb1b2</color>
+    <color name="color800">#a0a2a3</color>
+    <color name="color1600">#919394</color>
+    <color name="color3200">#828485</color>
 </resources>

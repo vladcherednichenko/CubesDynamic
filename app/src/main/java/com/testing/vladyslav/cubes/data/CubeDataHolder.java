@@ -14,10 +14,14 @@ public class CubeDataHolder {
 
     public int sizeInVertex;
 
+    public static int QUALITY_LOW = 0;
+    public static int QUALITY_MEDIUM = 1;
+    public static int QUALITY_HIGH = 2;
 
     public ArrayList<Facet> facetListLow;
     public ArrayList<Facet> facetListMedium;
     public ArrayList<Facet> facetListHigh;
+    public int modelToLoad = -1;
 
     private float[] vertices;
     private float[] normals;
@@ -37,6 +41,29 @@ public class CubeDataHolder {
         }
 
         return instance;
+
+    }
+
+
+    public void setGraphicsQuality(int quality){
+
+        switch (quality){
+
+            case 0:{
+                setFacetList(CubeDataHolder.getInstance().facetListLow);
+                break;
+            }
+            case 1:{
+                setFacetList(CubeDataHolder.getInstance().facetListMedium);
+                break;
+            }
+            case 2:{
+                setFacetList(CubeDataHolder.getInstance().facetListHigh);
+                break;
+            }
+
+        }
+
 
     }
 
@@ -79,20 +106,13 @@ public class CubeDataHolder {
 
         }
 
-//        for (Float f: vertices){
-//            if ((f < 0 && f< -0.5f )|| (f>0 && f>0.5f)){
-//                Log.w("CubeDataHolder", String.valueOf(f));
-//            }
-//        }
-
         sizeInVertex = vertices.length / 3;
-
-
 
 
     }
 
     public ArrayList<Facet> getFacetList() {
+
         return facetList;
     }
 

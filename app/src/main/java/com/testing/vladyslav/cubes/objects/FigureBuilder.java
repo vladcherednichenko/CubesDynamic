@@ -4,8 +4,10 @@ import android.opengl.GLES20;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.data.VertexArray;
+import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
-import com.testing.vladyslav.cubes.util.Color;
+import com.testing.vladyslav.cubes.util.PixioColor;
+import com.testing.vladyslav.cubes.util.UserModelHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,39 +69,82 @@ public class FigureBuilder {
     private int vertexBufferColorIdx = 0;
     private int vertexBufferNormalIdx = 0;
 
+    private int maxModelSize = 24;
+    private float [] modelDimensions = new float [9];
+
+    private int sizeX = 0;
+    private int sizeY = 1;
+    private int sizeZ = 2;
+
+    private int minX = 3;
+    private int maxX = 4;
+
+    private int minZ = 5;
+    private int maxZ = 6;
+
+    private int minY = 7;
+    private int maxY = 8;
+
     private ArrayList<Cube> reservedCubes;
     private ArrayList<Cube> cubes;
-    private ArrayList<Point> reservedCubeCenters = new ArrayList<>();
-    private ArrayList<Point> cubeCenters = new ArrayList<>();
+    private ArrayList<PixioPoint> reservedCubeCenters;
+    private ArrayList<PixioPoint> cubeCenters;
 
     private int cubeNumber = 0;
 
     private GridBuilder gridBuilder;
 
-    public ArrayList<Point> getCubeCenters(){ return cubeCenters;}
+    public ArrayList<PixioPoint> getCubeCenters(){ return cubeCenters;}
 
     public void setGridBuilder(GridBuilder grid){this.gridBuilder = grid;}
+
+
+    public UserModel getModel(){
+
+        UserModel model = new UserModel();
+        model.setCubeNumber(cubeNumber);
+        model.setSizeY(sizeY);
+        model.setSizeX(sizeX);
+        model.setSizeZ(sizeZ);
+        model.setCubes(UserModelHelper.getStringModelForm(cubes));
+
+        return model;
+
+    }
 
     public FigureBuilder(){
 
         cubes = new ArrayList<>();
         reservedCubes = new ArrayList<>();
 
-        //cubeCenters.add(new Point(0f, 0f, 0f));
-
-        for (Point center: cubeCenters){
-
-            Color color = new Color("#f4b942");
-            Cube cube = new Cube(center, color);
-
-            cubes.add(cube);
-            reservedCubes.add(cube);
-
-
-        }
+        cubeCenters = new ArrayList<>();
+        reservedCubeCenters = new ArrayList<>();
 
         buildFigure(cubes);
 
+    }
+
+    public void setModel(UserModel model){
+
+        this.sizeX = model.getSizeX() == null? 0: model.getSizeX();
+        this.sizeY = model.getSizeY() == null? 0: model.getSizeY();
+        this.sizeZ = model.getSizeZ() == null? 0: model.getSizeZ();
+
+        this.cubeNumber = model.getCubeNumber() == null? 0: model.getCubeNumber();
+
+        this.cubes = UserModelHelper.getCubesModelForm(model.getCubes() == null? "" : model.getCubes());
+        this.reservedCubes = new ArrayList<>(cubes);
+        this.cubeCenters = new ArrayList<>();
+
+        for (Cube cube: cubes){
+            cubeCenters.add(cube.center);
+        }
+
+        this.reservedCubeCenters = new ArrayList<>(cubeCenters);
+
+        buildFigure(cubes);
+
+        bindAttributesData();
 
     }
 
@@ -111,10 +156,11 @@ public class FigureBuilder {
         vertexDataOffset = 0;
         vertexNormalDataOffset = 0;
 
-
         vertexPositionData = new float[CubeDataHolder.getInstance().sizeInVertex * POSITION_COMPONENT_COUNT * cubeNumber];
         vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
         vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
+
+        clearFigureDimensions();
 
         for (Cube cube: cubes){
 
@@ -122,7 +168,11 @@ public class FigureBuilder {
             appendCube(cube);
             cube.releaseCubeData();
 
+            updateFigureDimensions(cube);
+
         }
+
+        gridBuilder.setGridSize(Math.round(getFigureMaxXZDimen()+1) *2);
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
@@ -134,11 +184,88 @@ public class FigureBuilder {
 
     }
 
-    public void addNewCube(Point center, int colorIndex){
+    private float getFigureMaxXZDimen(){
+
+        return Math.max(
+                Math.max(Math.abs(modelDimensions[maxX]), Math.abs(modelDimensions[minX])),
+                Math.max(Math.abs(modelDimensions[maxZ]), Math.abs(modelDimensions[minZ])));
+
+    }
+
+    public float getFigureMaxXYZDimen(){
+
+        return Math.max(gridBuilder.gridSize, maxY - minY);
+
+    }
+
+    public PixioPoint getFigureCenter(){
+
+        return new PixioPoint(
+                (Math.abs(modelDimensions[maxX]) - Math.abs(modelDimensions[minX]))/2,
+                (Math.abs(modelDimensions[maxY]) - Math.abs(modelDimensions[minY]))/2,
+                (Math.abs(modelDimensions[maxZ]) - Math.abs(modelDimensions[minZ]))/2
+        );
+
+    }
+
+    private void updateFigureDimensions(Cube cube){
+
+
+        //count figure size
+        if(cube.center.x > modelDimensions[maxX]){
+             modelDimensions[maxX] = cube.center.x;
+        }
+
+        if(cube.center.x < modelDimensions[minX]){
+            modelDimensions[minX] = cube.center.x;
+        }
+
+        if(cube.center.y > modelDimensions[maxY]){
+            modelDimensions[maxY] = cube.center.y;
+        }
+
+        if(cube.center.y < modelDimensions[minY]){
+            modelDimensions[minY] = cube.center.y;
+        }
+
+        if(cube.center.z > modelDimensions[maxZ]){
+            modelDimensions[maxZ] = cube.center.z;
+        }
+
+        if(cube.center.z < modelDimensions[minZ]){
+            modelDimensions[minZ] = cube.center.z;
+        }
+
+    }
+
+    private void clearFigureDimensions(){
+        for (int i = 0; i<modelDimensions.length; i++){
+            modelDimensions[i] = 0;
+        }
+    }
+
+    public void addNewCubeClicked(PixioPoint center, int colorIndex){
+
+    }
+
+    public void deleteCubeClicked(PixioPoint center){
+
+    }
+
+    public void paintCubeClicked(PixioPoint center, int colorIndex){
+
+    }
+
+    public void addNewCube(PixioPoint center, final int colorIndex){
 
         if(center == null) return;
 
-        for (Point oldCenter: cubeCenters){
+        //check if block if out of figure bounds
+        if(center.y - modelDimensions[minY] >= maxModelSize || Math.abs(center.x)> gridBuilder.maxGridSize/2 ||Math.abs(center.z)>gridBuilder.maxGridSize /2){
+            return;
+        }
+
+        for (PixioPoint oldCenter: cubeCenters){
             if (center.equals(oldCenter)){
                 return;
             }
@@ -148,7 +275,7 @@ public class FigureBuilder {
         cubeCenters.add(center);
         reservedCubeCenters = new ArrayList<>(cubeCenters);
 
-        cubes.add(new Cube(center, new Color(colorCodeToHex.get(colorIndex))));
+        cubes.add(new Cube(center, new PixioColor(colorCodeToHex.get(colorIndex))));
         reservedCubes = new ArrayList<>(cubes);
 
 
@@ -159,16 +286,16 @@ public class FigureBuilder {
 
     }
 
-    public void deleteCube(Point center){
+    public void deleteCube(PixioPoint center){
 
         if(center == null) return;
-        Iterator<Point> pointIterator = cubeCenters.iterator();
+        Iterator<PixioPoint> pointIterator = cubeCenters.iterator();
 
         cubeNumber--;
 
         while(pointIterator.hasNext()){
 
-            Point point = pointIterator.next();
+            PixioPoint point = pointIterator.next();
             if(point.equals(center)){
 
                 pointIterator.remove();
@@ -206,7 +333,7 @@ public class FigureBuilder {
 
     }
 
-    public void changeCubeColor(Point center, int colorIndex){
+    public void changeCubeColor(PixioPoint center, int colorIndex){
 
         if(center == null) return;
 
@@ -218,7 +345,7 @@ public class FigureBuilder {
             if(cube.center.equals(center)){
 
                 iterator.remove();
-                cubes.add(new Cube(center, new Color (colorCodeToHex.get(colorIndex))));
+                cubes.add(new Cube(center, new PixioColor(colorCodeToHex.get(colorIndex))));
 
                 reservedCubes = new ArrayList<>(cubes);
                 reservedCubeCenters = new ArrayList<>(cubeCenters);
@@ -232,45 +359,6 @@ public class FigureBuilder {
             }
 
         }
-
-
-
-    }
-
-    public void highliteCube (Point center){
-
-        cubes = new ArrayList<>();
-
-        vertexColorDataOffset = 0;
-        vertexDataOffset = 0;
-        vertexNormalDataOffset = 0;
-
-        vertexPositionData = new float[CubeDataHolder.getInstance().sizeInVertex * POSITION_COMPONENT_COUNT * cubeNumber];
-        vertexNormalData = new float[CubeDataHolder.getInstance().sizeInVertex * NORMAL_COMPONENT_COUNT * cubeNumber];
-        vertexColorData = new float[(vertexPositionData.length / POSITION_COMPONENT_COUNT) * COLOR_COORDINATES_COMPONENT_COUNT];
-
-        for (Point cubeCenter: cubeCenters){
-
-            Color color;
-
-            if(cubeCenter.equals(center)){
-                color = new Color("#ff0000");
-            }else
-            color = new Color("#f4b942");
-
-            Cube cube = new Cube(cubeCenter, color);
-
-            cubes.add(cube);
-            appendCube(cube);
-
-        }
-
-        vertexPosArray = new VertexArray(vertexPositionData);
-        vertexColorArray = new VertexArray(vertexColorData);
-        vertexNormalArray = new VertexArray(vertexNormalData);
-
-
-        bindAttributesData();
 
     }
 
@@ -348,8 +436,6 @@ public class FigureBuilder {
 
     }
 
-
-
     public void draw(ShaderProgram shader){
 
         if(cubeNumber <= 0){
@@ -375,8 +461,6 @@ public class FigureBuilder {
         glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeDataHolder.getInstance().sizeInVertex * cubeNumber);
 
     }
-
-
 
 
 }

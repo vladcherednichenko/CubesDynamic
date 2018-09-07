@@ -4,6 +4,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 
@@ -11,14 +12,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static android.arch.persistence.room.OnConflictStrategy.REPLACE;
+
 @Dao
 public interface IDataUserFiguresAccessObject {
 
-    @Query("SELECT * FROM UserModel")
+    @Query("SELECT * FROM MODELS")
     List<UserModel> loadAllUserModels();
 
     @Insert
     void insertUserModels(ArrayList<UserModel> modelsList);
+
+
+    @Query("DELETE FROM MODELS WHERE MODELS.id = :modelId")
+    void deleteUserModel(int modelId);
+
+    @Update(onConflict = REPLACE)
+    void updateUserModel(UserModel model);
+
+
 
 //    @Query("SELECT * FROM PixioSet")
 //    public List<PixioSet> loadAllSets();

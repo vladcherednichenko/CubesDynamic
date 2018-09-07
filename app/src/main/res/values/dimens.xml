@@ -2,6 +2,42 @@
 <resources>
 
     <dimen name="radius_corner">10dp</dimen>
+    <dimen name="studio_header_text_size">20sp</dimen>
+
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="menu_text_size">34sp</dimen>
+    <dimen name="set_title_text_size">18sp</dimen>
+    <dimen name="filters_menu_button_txt_size">18sp</dimen>
+    <dimen name="set_name_text_size">18sp</dimen>
+    <dimen name="category_name_text_size">18sp</dimen>
+    <dimen name="model_name_text_size">18sp</dimen>
+    <dimen name="model_blocks_text_size">11sp</dimen>
+
+
+    <dimen name="set_buttons_text_size">11sp</dimen>
+    <dimen name="set_buttons_height">60dp</dimen>
+    <dimen name="set_buttons_image_padding">5dp</dimen>
+    <dimen name="set_buttons_counter_size">20sp</dimen>
+
+
+    <dimen name="filters_color_blocks_size">20sp</dimen>
+    <dimen name="filters_color_blocks_bar_size">100dp</dimen>
+    <dimen name="filters_text_margin_left">20sp</dimen>
+
+
+    <dimen name="black_square_block_size">15sp</dimen>
+    <dimen name="black_square_text_size">10sp</dimen>
+    <dimen name="color_block_size">20sp</dimen>
+
+    <dimen name="row_padding_vertical">10dp</dimen>
+
+
+    <item name="default_block_amount" format="integer" type = "dimen">12</item>
+
+
+    <dimen name="buy_app_blocks_txt_size">20dp</dimen>
 
 
 </resources>

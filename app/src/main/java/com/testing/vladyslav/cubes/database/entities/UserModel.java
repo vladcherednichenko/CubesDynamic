@@ -6,7 +6,7 @@ import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-@Entity(tableName = "UserModel")
+@Entity(tableName = "MODELS")
 public class UserModel {
 
     @PrimaryKey(autoGenerate = true)
@@ -28,15 +28,15 @@ public class UserModel {
 
     @Nullable
     @ColumnInfo(name = "sizeX")
-    private Integer sizeX;
+    private Integer sizeX = 0;
 
     @Nullable
     @ColumnInfo(name = "sizeY")
-    private Integer sizeY;
+    private Integer sizeY = 0;
 
     @Nullable
     @ColumnInfo(name = "sizeZ")
-    private Integer sizeZ;
+    private Integer sizeZ = 0;
 
 
     @Nullable

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 
 import com.testing.vladyslav.cubes.Facet;
-import com.testing.vladyslav.cubes.objects.Point;
+import com.testing.vladyslav.cubes.objects.PixioPoint;
 import com.testing.vladyslav.cubes.util.Geometry.Vector;
 
 
@@ -69,11 +69,11 @@ public class TextResourceReader {
                     float z = Float.parseFloat(coords[3]);
 
                     if (facet.A == null){
-                        facet.A = new Point(x, y, z);
+                        facet.A = new PixioPoint(x, y, z);
                     }else if(facet.B == null){
-                        facet.B = new Point(x, y, z);
+                        facet.B = new PixioPoint(x, y, z);
                     }else if(facet.C == null){
-                        facet.C = new Point(x, y, z);
+                        facet.C = new PixioPoint(x, y, z);
                         facetList.add(facet);
                     }
 
@@ -125,19 +125,19 @@ public class TextResourceReader {
             String []verticeBList = verticesList.get(verticeBPosition).split(" ");
             String []verticeCList = verticesList.get(verticeCPosition).split(" ");
 
-            Point A = new Point(
+            PixioPoint A = new PixioPoint(
                     Float.parseFloat(verticeAList[1]),
                     Float.parseFloat(verticeAList[2]),
                     Float.parseFloat(verticeAList[3])
             );
 
-            Point B = new Point(
+            PixioPoint B = new PixioPoint(
                     Float.parseFloat(verticeBList[1]),
                     Float.parseFloat(verticeBList[2]),
                     Float.parseFloat(verticeBList[3])
             );
 
-            Point C = new Point(
+            PixioPoint C = new PixioPoint(
                     Float.parseFloat(verticeCList[1]),
                     Float.parseFloat(verticeCList[2]),
                     Float.parseFloat(verticeCList[3])
@@ -154,7 +154,7 @@ public class TextResourceReader {
 
     }
 
-    static Geometry.Vector calcNormals(Point a, Point b, Point c)
+    static Geometry.Vector calcNormals(PixioPoint a, PixioPoint b, PixioPoint c)
     {
 
         Geometry.Vector result = new Vector(0, 0, 0);

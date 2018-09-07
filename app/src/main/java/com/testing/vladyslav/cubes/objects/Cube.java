@@ -1,7 +1,7 @@
 package com.testing.vladyslav.cubes.objects;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
-import com.testing.vladyslav.cubes.util.Color;
+import com.testing.vladyslav.cubes.util.PixioColor;
 
 public class Cube {
 
@@ -12,8 +12,8 @@ public class Cube {
     private int COLOR_COORDINATES_COMPONENT_COUNT = 4;
     private int STRIDE = 0;
 
-    public Point center;
-    public Color color;
+    public PixioPoint center;
+    public PixioColor color;
 
     public float[] cubePositionData;
     public float[] cubeColorData;
@@ -21,12 +21,25 @@ public class Cube {
 
 
 
-    public Cube(Point center, Color color){
+
+    public Cube(PixioPoint center, PixioColor color){
 
         this.center = center;
         this.color = color;
 
         createCubeData();
+
+    }
+
+    public Cube(PixioPoint center, PixioColor color, boolean autoCreateVertexData){
+
+        this.center = center;
+        this.color = color;
+
+        if(autoCreateVertexData){
+            createCubeData();
+        }
+
 
     }
 
@@ -70,7 +83,7 @@ public class Cube {
     }
 
 
-    public void translateCube(Point vector){
+    public void translateCube(PixioPoint vector){
         for (int i = 0; i< cubePositionData.length; i++){
 
             switch(i % POSITION_COMPONENT_COUNT) {
