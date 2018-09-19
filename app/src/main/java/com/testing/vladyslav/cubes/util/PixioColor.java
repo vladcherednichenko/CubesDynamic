@@ -1,6 +1,9 @@
 package com.testing.vladyslav.cubes.util;
 
+import java.util.HashMap;
+
 public class PixioColor {
+
 
     public float RED = 0f;
     public float GREEN = 0f;

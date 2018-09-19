@@ -14,6 +14,8 @@ import com.testing.vladyslav.cubes.adapters.StudioRecyclerAdapter;
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.objects.FigureBuilder;
+import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
 import com.testing.vladyslav.cubes.util.ImageLoader;
 import com.testing.vladyslav.cubes.util.ImagesHelper;
 import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
@@ -30,6 +32,7 @@ public class StudioActivityPresenter {
     private StudioActivityView studioActivityView;
     private StudioFragmentView studioFragmentView;
     private EditorFragmentView editorFragmentView;
+    private OnFigureChangeListener figureChangeListener;
 
     private ArrayList<UserModel> usersModelsList;
     private UserModel currentUserModel;
@@ -62,6 +65,15 @@ public class StudioActivityPresenter {
         CubeRenderer getRenderer();
         void setModelToOpen(UserModel model);
         void openDialogBox();
+        void setBackwardButtonVisible(Boolean visible);
+        void setForwardButtonVisible(Boolean visible);
+        void setOnFigureChangeListener(OnFigureChangeListener listener);
+
+    }
+
+    public interface OnFigureChangeListener{
+
+        void onFigureChanged();
 
     }
 
@@ -120,7 +132,7 @@ public class StudioActivityPresenter {
 
     }
 
-    public void saveUserModel(String name){
+    private void saveUserModel(String name){
 
         UserModel renderingModel = editorFragmentView.getRenderer().getRenderingModel();
         renderingModel.setName(name);
@@ -141,10 +153,33 @@ public class StudioActivityPresenter {
 
     private void openUserModel(UserModel model){
 
+        editorFragmentView.setOnFigureChangeListener(new OnFigureChangeListener() {
+            @Override
+            public void onFigureChanged() {
+                updateBackwardForwardButtons();
+            }
+        });
         editorFragmentView.setModelToOpen(model);
         studioActivityView.loadFragment(StudioActivity.EDITORFRAGMENTID);
         currentUserModel = model;
 
+    }
+
+    private void deleteUserModel(UserModel userModel){
+        model.deleteUserModel(userModel, new UserModelsDBLoader.DeleteUserModelCallback() {
+            @Override
+            public void onUserModelsDeleted() {
+                model.loadUserModels(new UserModelsDBLoader.LoadUserModelsCallback() {
+                    @Override
+                    public void onUserModelsLoad(ArrayList<UserModel> models) {
+
+                        usersModelsList = models;
+                        studioFragmentView.setNewRecyclerViewData (models);
+
+                    }
+                });
+            }
+        });
     }
 
     public void createNewModelClicked(){
@@ -168,23 +203,6 @@ public class StudioActivityPresenter {
             }
         });
 
-    }
-
-    public void deleteUserModel(UserModel userModel){
-        model.deleteUserModel(userModel, new UserModelsDBLoader.DeleteUserModelCallback() {
-            @Override
-            public void onUserModelsDeleted() {
-                model.loadUserModels(new UserModelsDBLoader.LoadUserModelsCallback() {
-                    @Override
-                    public void onUserModelsLoad(ArrayList<UserModel> models) {
-
-                        usersModelsList = models;
-                        studioFragmentView.setNewRecyclerViewData (models);
-
-                    }
-                });
-            }
-        });
     }
 
     public void saveClicked(){
@@ -240,6 +258,38 @@ public class StudioActivityPresenter {
 
         new ImageSaveWaitTask(imageName).execute(null, null, null);
 
+
+    }
+
+    private void updateBackwardForwardButtons(){
+
+        int state = editorFragmentView.getRenderer().getFigureChangeManager().getState();
+
+        switch(state){
+
+            case FigureChangesManager.CAN_NOT_FORWARD_BACKWARD: {
+                editorFragmentView.setForwardButtonVisible(false);
+                editorFragmentView.setBackwardButtonVisible(false);
+                break;
+            }
+            case FigureChangesManager.CAN_BACKWARD: {
+                editorFragmentView.setForwardButtonVisible(false);
+                editorFragmentView.setBackwardButtonVisible(true);
+                break;
+            }
+            case FigureChangesManager.CAN_FORWARD: {
+                editorFragmentView.setForwardButtonVisible(true);
+                editorFragmentView.setBackwardButtonVisible(false);
+                break;
+            }
+            case FigureChangesManager.CAN_FORWARD_BACKWARD: {
+                editorFragmentView.setForwardButtonVisible(true);
+                editorFragmentView.setBackwardButtonVisible(true);
+                break;
+            }
+
+
+        }
 
     }
 

@@ -24,6 +24,7 @@ import com.testing.vladyslav.cubes.R;
 import com.testing.vladyslav.cubes.activities.StudioActivity;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
+import com.testing.vladyslav.cubes.objects.FigureBuilder;
 import com.testing.vladyslav.cubes.presenters.StudioActivityPresenter;
 
 import java.util.ArrayList;
@@ -54,12 +55,14 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
     private int colorsNumber = 16;
     private int nonTransparentAlpha = 255;
+    private int transparentAlpha = 90;
 
     private CubeSurfaceView surfaceView;
     private ArrayList<ImageView> colorRow;
 
     private StudioActivityPresenter presenter;
 
+    private StudioActivityPresenter.OnFigureChangeListener figureChangeListener;
     private UserModel modelToRender;
     private View view;
 
@@ -96,6 +99,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         view = inflater.inflate(R.layout.fragment_editor, container, false);
 
         surfaceView = view.findViewById(R.id.surfaceView);
+        surfaceView.setOnFigureChangedListener(figureChangeListener);
         if(modelToRender != null){
             surfaceView.getRenderer().setRenderingModel(modelToRender);
         }
@@ -129,6 +133,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             @Override
             public void onClick(View view) {
                 surfaceView.getRenderer().backward();
+                figureChanged();
             }
         });
         img_repeat = view.findViewById(R.id.img_repeat);
@@ -136,6 +141,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             @Override
             public void onClick(View view) {
                 surfaceView.getRenderer().forward();
+                figureChanged();
             }
         });
 
@@ -146,6 +152,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 surfaceView.getRenderer().setBuildingMode();
                 makeTransparentMiddleButtons();
                 img_add.setImageAlpha(nonTransparentAlpha);
+                figureChanged();
 
             }
         });
@@ -156,6 +163,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 surfaceView.getRenderer().setColorEditingMode();
                 makeTransparentMiddleButtons();
                 img_change_color.setImageAlpha(nonTransparentAlpha);
+                figureChanged();
             }
         });
         img_delete = view.findViewById(R.id.img_delete);
@@ -165,6 +173,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 surfaceView.getRenderer().setDeleteMode();
                 makeTransparentMiddleButtons();
                 img_delete.setImageAlpha(nonTransparentAlpha);
+                figureChanged();
             }
         });
 
@@ -196,12 +205,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             }
         });
 
-        surfaceView.setListener(new CubeRenderer.CubeRendererListener() {
-            @Override
-            public void onTouched(String txt) {
-
-            }
-        });
 
         makeTransparentMiddleButtons();
 
@@ -392,11 +395,9 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
     private void makeTransparentMiddleButtons(){
 
-        int alpha = 90;
-
-        img_delete.setImageAlpha(alpha);
-        img_add.setImageAlpha(alpha);
-        img_change_color.setImageAlpha(alpha);
+        img_delete.setImageAlpha(transparentAlpha);
+        img_add.setImageAlpha(transparentAlpha);
+        img_change_color.setImageAlpha(transparentAlpha);
 
 
     }
@@ -405,6 +406,10 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
         return surfaceView.getRenderer();
 
+    }
+
+    public void setOnFigureChangeListener(StudioActivityPresenter.OnFigureChangeListener listener){
+        this.figureChangeListener = listener;
     }
 
     public void setModelToOpen(UserModel model){
@@ -427,4 +432,31 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         dialog.show();
 
     }
+
+    @Override
+    public void setBackwardButtonVisible(Boolean visible) {
+        if(!visible){
+            img_cancel.setImageAlpha(transparentAlpha);
+        }else{
+            img_cancel.setImageAlpha(nonTransparentAlpha);
+        }
+    }
+
+    @Override
+    public void setForwardButtonVisible(Boolean visible) {
+        if(!visible){
+            img_repeat.setImageAlpha(transparentAlpha);
+        }else{
+            img_repeat.setImageAlpha(nonTransparentAlpha);
+        }
+    }
+
+    void figureChanged(){
+        if(figureChangeListener !=null){
+            figureChangeListener.onFigureChanged();
+        }
+    }
+
+
+
 }

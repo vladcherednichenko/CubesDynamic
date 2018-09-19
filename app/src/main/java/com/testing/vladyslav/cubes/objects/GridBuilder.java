@@ -97,11 +97,11 @@ public class GridBuilder {
 
         this.gridHeight = height;
 
+    }
+
+    public void build(){
         buildGrid(gridSize, gridHeight);
         buildTiles(gridSize, gridHeight);
-
-
-
     }
 
     private void buildGrid(int size, float height){

@@ -10,9 +10,9 @@ import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.objects.GridBuilder;
 import com.testing.vladyslav.cubes.objects.FigureBuilder;
 import com.testing.vladyslav.cubes.objects.PixioPoint;
+import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
 import com.testing.vladyslav.cubes.programs.GridShaderProgram;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
-import com.testing.vladyslav.cubes.util.ImagesHelper;
 import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
 
 import java.nio.ByteBuffer;
@@ -123,13 +123,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private int height;
 
 
-    //connection with the main activity
-    private CubeRendererListener listener;
-
-    public interface CubeRendererListener{
-        void onTouched(String txt);
-    }
-
     private ScreenshotHandler screenshotHandler;
 
     public interface ScreenshotHandler{
@@ -145,6 +138,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         this.screenshotHandler = screenshotHandler;
     }
 
+    public FigureChangesManager getFigureChangeManager(){return builder.getChangesManager();}
+
     public void resetModes(){buildingMode = false; colorEditingMode = false; deleteMode = false;}
 
     public void setBuildingMode(){resetModes(); buildingMode = true; }
@@ -152,8 +147,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     public void setColorEditingMode(){resetModes(); colorEditingMode = true;}
 
     public void setDeleteMode(){resetModes(); deleteMode = true;}
-
-    public void setListener (CubeRendererListener listener){ this.listener = listener; }
 
     public void setScaleFactor(float scaleFactor) {
         this.scaleFactor = scaleFactor;
@@ -183,7 +176,12 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     }
 
     public CubeRenderer(Context context) {
+
         this.context = context;
+
+
+
+
     }
 
     private void lowerGrid(){
@@ -224,7 +222,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     public UserModel getRenderingModel(){
 
-        return builder.getModel();
+        return builder.getFigureParams().getModel();
 
     }
 
@@ -267,17 +265,18 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 
 
-
         gridShader = new GridShaderProgram(context);
-        gridBuilder = new GridBuilder(gridHeight);
-        gridBuilder.bindAttributesData();
-
-
-
-
-        cubeShader = new ShaderProgram(context);
         builder = new FigureBuilder();
+
+        gridBuilder = new GridBuilder(gridHeight);
+        gridBuilder.build();
+
         builder.setGridBuilder(gridBuilder);
+        cubeShader = new ShaderProgram(context);
+
+        builder.build();
+
+        gridBuilder.bindAttributesData();
         builder.bindAttributesData();
 
 
@@ -326,31 +325,31 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         if(shouldAddCube){
 
-            builder.addNewCube(touchResult.newCubeCenter, currentColorIndex);
+            builder.addNewCubeClicked(touchResult.newCubeCenter, currentColorIndex);
             shouldAddCube = false;
 
         }
 
         if(shouldEditCubeColor){
 
-            builder.changeCubeColor(touchResult.touchedCubeCenter, currentColorIndex);
+            builder.paintCubeClicked(touchResult.touchedCubeCenter, currentColorIndex);
             shouldEditCubeColor = false;
 
         }
 
         if(shouldDeleteCube){
-            builder.deleteCube(touchResult.touchedCubeCenter);
+            builder.deleteCubeClicked(touchResult.touchedCubeCenter);
             shouldDeleteCube = false;
 
         }
 
         if(shouldBackwards){
-            builder.backward();
+            builder.backwardClicked();
             shouldBackwards = false;
         }
 
         if(shouldForward){
-            builder.forward();
+            builder.forwardClicked();
             shouldForward = false;
         }
 
@@ -368,7 +367,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         if (shouldMakeScreenshot){
 
-            PixioPoint figureCenter = builder.getFigureCenter();
+            PixioPoint figureCenter = builder.getFigureParams().getFigureCenter();
 
             Matrix.translateM(modelMatrix, 0, -figureCenter.x, 0.0f, 0f);
             Matrix.translateM(modelMatrix, 0, 0.0f, -figureCenter.y, 0f);
@@ -466,7 +465,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
                 bottomLightPosInEyeSpace);
 
         if (shouldMakeScreenshot){
-            float figureSize = builder.getFigureMaxXYZDimen();
+            float figureSize = builder.getFigureParams().getFigureMaxXYZDimen();
 
             if(figureSize>8){
                 float scale = 8/figureSize;

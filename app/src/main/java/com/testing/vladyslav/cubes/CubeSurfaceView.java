@@ -7,6 +7,8 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
+import com.testing.vladyslav.cubes.presenters.StudioActivityPresenter;
+
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
@@ -40,18 +42,18 @@ public class CubeSurfaceView extends GLSurfaceView{
 
     ScaleGestureDetector mScaleDetector;
 
+    private StudioActivityPresenter.OnFigureChangeListener listener;
+
+    public void setOnFigureChangedListener(StudioActivityPresenter.OnFigureChangeListener listener){
+        this.listener = listener;
+    }
+
 
 
     public CubeRenderer getRenderer(){
 
         return this.renderer;
 
-    }
-
-    public void setListener(CubeRenderer.CubeRendererListener listener){
-        if (renderer != null){
-            renderer.setListener(listener);
-        }
     }
 
     public CubeSurfaceView(Context context) {
@@ -155,6 +157,8 @@ public class CubeSurfaceView extends GLSurfaceView{
                         float normalizedY = -((e.getY() / (float) getHeight()) * 2 - 1);
 
                         renderer.handleTouchPress(normalizedX, normalizedY);
+                        if(listener != null)
+                        listener.onFigureChanged();
                     }
 
                 }
