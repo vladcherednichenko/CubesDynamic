@@ -15,6 +15,7 @@ public class StartingActivity extends AppCompatActivity {
     private Button btnLow;
     private Button btnMedium;
     private Button btnHigh;
+    private Button btnSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +30,15 @@ public class StartingActivity extends AppCompatActivity {
             CubeDataHolder.getInstance().facetListHigh = TextResourceReader.getFacetsFromFileObject(getApplicationContext(), "cube_detailed.obj");
         }
 
+
+        btnSettings = findViewById(R.id.btnSettings);
+        btnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(StartingActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
 
         btnLow = findViewById(R.id.btnLow);
         btnLow.setOnClickListener(new View.OnClickListener() {

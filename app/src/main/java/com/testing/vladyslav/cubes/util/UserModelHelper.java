@@ -21,7 +21,7 @@ public class UserModelHelper {
                     append(String.valueOf(cube.center.z)).append(devider).
                     append(cube.color.hexColor) ;
 
-            result.append(cubeList.indexOf(cube) == cubeList.size()-1? null : splitter);
+            result.append(cubeList.indexOf(cube) == cubeList.size()-1? "" : splitter);
 
         }
 

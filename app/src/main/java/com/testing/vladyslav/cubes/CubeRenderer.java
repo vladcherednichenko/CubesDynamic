@@ -124,18 +124,39 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
     private ScreenshotHandler screenshotHandler;
+    private ChangesRequestedListener changesRequestedListener;
+
+    public interface ChangesRequestedListener{
+        void onActionRequested();
+    }
 
     public interface ScreenshotHandler{
         void makeScreenshot(Bitmap bitmap);
     }
 
-    public void backward(){shouldBackwards = true;}
+    private void changeRequested(){
+        if(changesRequestedListener!=null){
+            changesRequestedListener.onActionRequested();
+        }
+    }
 
-    public void forward(){shouldForward = true;}
+    public void backward(){
+        shouldBackwards = true;
+        changeRequested();
+    }
+
+    public void forward(){
+        shouldForward = true;
+        changeRequested();
+    }
 
     public void makeScreenshot(ScreenshotHandler screenshotHandler){
         this.shouldMakeScreenshot = true;
         this.screenshotHandler = screenshotHandler;
+    }
+
+    public void setChangesRequestListener(ChangesRequestedListener listener){
+        this.changesRequestedListener = listener;
     }
 
     public FigureChangesManager getFigureChangeManager(){return builder.getChangesManager();}
@@ -178,9 +199,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     public CubeRenderer(Context context) {
 
         this.context = context;
-
-
-
+        builder = new FigureBuilder();
 
     }
 
@@ -197,7 +216,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         touchResult = ObjectSelectHelper.getTouchResult(cubeCenters, normalizedX, normalizedY, invertedViewProjectionMatrix, modelMatrix, scaleFactor, gridHeight);
         if(!touchResult.cubeTouched) return;
-
 
         if(buildingMode){
 
@@ -216,6 +234,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             shouldDeleteCube = true;
 
         }
+
+        changeRequested();
 
 
     }
@@ -266,7 +286,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
         gridShader = new GridShaderProgram(context);
-        builder = new FigureBuilder();
 
         gridBuilder = new GridBuilder(gridHeight);
         gridBuilder.build();

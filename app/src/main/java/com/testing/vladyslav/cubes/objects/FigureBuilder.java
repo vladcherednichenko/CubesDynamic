@@ -223,7 +223,7 @@ public class FigureBuilder {
 
         if(center == null) return;
         if(cubeExists(center)) return;
-        if(params.cubeOutOfBounds(center) && !Settings.unlimitedGridSize) return;
+        if(params.cubeOutOfBounds(center) && !Settings.unlimitedGrid) return;
 
 
         changesManager.newCommandAddCube(center, colorIndex);

@@ -34,7 +34,7 @@
     <dimen name="row_padding_vertical">10dp</dimen>
 
 
-    <item name="default_block_amount" format="integer" type = "dimen">12</item>
+    <item name="default_block_amount" format="integer" type="dimen">12</item>
 
 
     <dimen name="buy_app_blocks_txt_size">20dp</dimen>

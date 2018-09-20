@@ -49,6 +49,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     private TextView txt_save;
     private TextView txt_save_as;
     private TextView txt_open;
+    private TextView txt_view_mode;
 
     private CustomRelativeLayout editor_color_row;
 
@@ -61,11 +62,13 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     private ArrayList<ImageView> colorRow;
 
     private StudioActivityPresenter presenter;
-
-    private StudioActivityPresenter.OnFigureChangeListener figureChangeListener;
     private UserModel modelToRender;
     private View view;
+    private OnSurfaceViewCreatedListener surfaceViewCreatedListener;
 
+    public interface OnSurfaceViewCreatedListener{
+        void onSurfaceViewCreated();
+    }
 
     private short[] colorOrder = new short[]{243, 244, 245, 246, 247, 248, 250, 249, 241, 242, 253, 252, 251, 254, 255, 240};
 
@@ -98,17 +101,14 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_editor, container, false);
 
-        surfaceView = view.findViewById(R.id.surfaceView);
-        surfaceView.setOnFigureChangedListener(figureChangeListener);
-        if(modelToRender != null){
-            surfaceView.getRenderer().setRenderingModel(modelToRender);
-        }
+
         menu = view.findViewById(R.id.editorMenu);
         menu.setVisibility(View.INVISIBLE);
         img_menu_open = view.findViewById(R.id.ic_menu_open);
         img_menu_open.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                presenter.openMenuClicked();
                 openMenu();
             }
         });
@@ -133,7 +133,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             @Override
             public void onClick(View view) {
                 surfaceView.getRenderer().backward();
-                figureChanged();
             }
         });
         img_repeat = view.findViewById(R.id.img_repeat);
@@ -141,7 +140,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             @Override
             public void onClick(View view) {
                 surfaceView.getRenderer().forward();
-                figureChanged();
             }
         });
 
@@ -152,7 +150,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 surfaceView.getRenderer().setBuildingMode();
                 makeTransparentMiddleButtons();
                 img_add.setImageAlpha(nonTransparentAlpha);
-                figureChanged();
 
             }
         });
@@ -163,7 +160,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 surfaceView.getRenderer().setColorEditingMode();
                 makeTransparentMiddleButtons();
                 img_change_color.setImageAlpha(nonTransparentAlpha);
-                figureChanged();
             }
         });
         img_delete = view.findViewById(R.id.img_delete);
@@ -173,7 +169,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 surfaceView.getRenderer().setDeleteMode();
                 makeTransparentMiddleButtons();
                 img_delete.setImageAlpha(nonTransparentAlpha);
-                figureChanged();
             }
         });
 
@@ -181,6 +176,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         txt_open = view.findViewById(R.id.txt_open);
         txt_save = view.findViewById(R.id.txt_save);
         txt_save_as = view.findViewById(R.id.txt_save_as);
+        txt_view_mode = view.findViewById(R.id.txt_view_mode);
 
         txt_open.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -188,8 +184,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
                 presenter.openClicked();
             }
         });
-
-
         txt_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -199,12 +193,24 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         txt_save_as.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 openDialogBox();
-
+            }
+        });
+        txt_view_mode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {presenter.viewModeClicked();
             }
         });
 
+
+        surfaceView = view.findViewById(R.id.surfaceView);
+        if(modelToRender != null){
+            surfaceView.getRenderer().setRenderingModel(modelToRender);
+        }
+
+        if(surfaceViewCreatedListener!= null){
+            surfaceViewCreatedListener.onSurfaceViewCreated();
+        }
 
         makeTransparentMiddleButtons();
 
@@ -217,6 +223,10 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
 
         return view;
+    }
+
+    public void setOnSurfaceViewCreatedListener(OnSurfaceViewCreatedListener listener){
+        this.surfaceViewCreatedListener = listener;
     }
 
     public void setPresenter(StudioActivityPresenter presenter){this.presenter = presenter;}
@@ -408,9 +418,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
     }
 
-    public void setOnFigureChangeListener(StudioActivityPresenter.OnFigureChangeListener listener){
-        this.figureChangeListener = listener;
-    }
 
     public void setModelToOpen(UserModel model){
 
@@ -451,11 +458,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         }
     }
 
-    void figureChanged(){
-        if(figureChangeListener !=null){
-            figureChangeListener.onFigureChanged();
-        }
-    }
 
 
 

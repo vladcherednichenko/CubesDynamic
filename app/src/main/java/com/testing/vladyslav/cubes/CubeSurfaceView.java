@@ -42,12 +42,6 @@ public class CubeSurfaceView extends GLSurfaceView{
 
     ScaleGestureDetector mScaleDetector;
 
-    private StudioActivityPresenter.OnFigureChangeListener listener;
-
-    public void setOnFigureChangedListener(StudioActivityPresenter.OnFigureChangeListener listener){
-        this.listener = listener;
-    }
-
 
 
     public CubeRenderer getRenderer(){
@@ -157,8 +151,6 @@ public class CubeSurfaceView extends GLSurfaceView{
                         float normalizedY = -((e.getY() / (float) getHeight()) * 2 - 1);
 
                         renderer.handleTouchPress(normalizedX, normalizedY);
-                        if(listener != null)
-                        listener.onFigureChanged();
                     }
 
                 }

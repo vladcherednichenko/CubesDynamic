@@ -2,6 +2,7 @@ package com.testing.vladyslav.cubes.objects;
 
 import android.opengl.GLES20;
 
+import com.testing.vladyslav.cubes.Settings;
 import com.testing.vladyslav.cubes.data.VertexArray;
 import com.testing.vladyslav.cubes.programs.GridShaderProgram;
 import com.testing.vladyslav.cubes.util.PixioColor;
@@ -25,9 +26,9 @@ public class GridBuilder {
     private float cubeSize = 1f;
 
 
-    public int maxGridSize = 24;
-    public int minGridSize = 10;
-    public int gridSize = 10;
+    public int maxGridSize = Settings.unlimitedGrid ? Settings.unlimitedGridSize : Settings.maximumGridSize;
+    public int minGridSize = Settings.minimumGridSize;
+    public int gridSize = minGridSize;
 
 
     private float gridHeight = -1.5f;

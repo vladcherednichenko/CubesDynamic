@@ -3,7 +3,6 @@ package com.testing.vladyslav.cubes.objects.userActionsManagement;
 import com.testing.vladyslav.cubes.objects.PixioPoint;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class FigureChangesManager {
 
@@ -15,8 +14,17 @@ public class FigureChangesManager {
     private int state;
 
     private Action cInterface;
+    private ChangeCommitListener changeCommitListener;
+
+    public void setChangeCommitListener(ChangeCommitListener listener){
+        this.changeCommitListener = listener;
+    }
 
     private int currentCommandPointer = -1;
+
+    public interface ChangeCommitListener {
+        void onChangeCommit();
+    }
 
     public interface Action {
         void addCube(PixioPoint center, int color);
@@ -74,11 +82,13 @@ public class FigureChangesManager {
             @Override
             public void execute() {
                 cInterface.addCube(cubeCenter, color);
+                commitChange();
             }
 
             @Override
             public void undo() {
                 cInterface.deleteCube(cubeCenter);
+                commitChange();
             }
         });
 
@@ -95,11 +105,13 @@ public class FigureChangesManager {
             @Override
             public void execute() {
                 cInterface.paintCube(cubeCenter, newColor);
+                commitChange();
             }
 
             @Override
             public void undo() {
                 cInterface.paintCube(cubeCenter, oldColor);
+                commitChange();
             }
         });
 
@@ -116,11 +128,13 @@ public class FigureChangesManager {
             @Override
             public void execute() {
                 cInterface.deleteCube(cubeCenter);
+                commitChange();
             }
 
             @Override
             public void undo() {
                 cInterface.addCube(cubeCenter, color);
+                commitChange();
             }
         });
 
@@ -147,6 +161,14 @@ public class FigureChangesManager {
     private void updateCommandPointer(){
 
         currentCommandPointer = commandsHistory.size()-1;
+
+    }
+
+    private void commitChange(){
+
+        if(changeCommitListener != null){
+            changeCommitListener.onChangeCommit();
+        }
 
     }
 

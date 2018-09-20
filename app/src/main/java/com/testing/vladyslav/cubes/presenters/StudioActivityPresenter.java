@@ -2,29 +2,20 @@ package com.testing.vladyslav.cubes.presenters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.opengl.GLES20;
 import android.os.AsyncTask;
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.widget.Toast;
 
 import com.testing.vladyslav.cubes.CubeRenderer;
 import com.testing.vladyslav.cubes.activities.StudioActivity;
 import com.testing.vladyslav.cubes.adapters.StudioRecyclerAdapter;
-import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
-import com.testing.vladyslav.cubes.objects.FigureBuilder;
+import com.testing.vladyslav.cubes.fragments.EditorFragment;
 import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
 import com.testing.vladyslav.cubes.util.ImageLoader;
 import com.testing.vladyslav.cubes.util.ImagesHelper;
-import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
-
-import static android.opengl.GLES20.glReadPixels;
 
 public class StudioActivityPresenter {
 
@@ -32,14 +23,17 @@ public class StudioActivityPresenter {
     private StudioActivityView studioActivityView;
     private StudioFragmentView studioFragmentView;
     private EditorFragmentView editorFragmentView;
-    private OnFigureChangeListener figureChangeListener;
 
     private ArrayList<UserModel> usersModelsList;
     private UserModel currentUserModel;
+    private final Object changesCommitLock;
+    private final Object changesCommitDoneLock;
 
     private StudioRecyclerAdapter modelListAdapter;
+    private ChangeCommitWaitingTask changesCommitWaitTask;
 
     private volatile boolean imageSaved = false;
+    private volatile boolean changeCommit = false;
 
 
     public interface StudioActivityView {
@@ -67,15 +61,10 @@ public class StudioActivityPresenter {
         void openDialogBox();
         void setBackwardButtonVisible(Boolean visible);
         void setForwardButtonVisible(Boolean visible);
-        void setOnFigureChangeListener(OnFigureChangeListener listener);
+        void setOnSurfaceViewCreatedListener(EditorFragment.OnSurfaceViewCreatedListener listener);
 
     }
 
-    public interface OnFigureChangeListener{
-
-        void onFigureChanged();
-
-    }
 
     public void setUserModelsList(ArrayList<UserModel> models){
         this.usersModelsList = models;
@@ -96,6 +85,8 @@ public class StudioActivityPresenter {
     //here do all the preparation work
     public StudioActivityPresenter(UserModelsDBLoader model){
 
+        changesCommitLock = new Object();
+        changesCommitDoneLock = new Object();
         this.model = model;
         model.loadUserModels(new UserModelsDBLoader.LoadUserModelsCallback() {
             @Override
@@ -134,6 +125,8 @@ public class StudioActivityPresenter {
 
     private void saveUserModel(String name){
 
+        studioActivityView.showProgressBar();
+
         UserModel renderingModel = editorFragmentView.getRenderer().getRenderingModel();
         renderingModel.setName(name);
 
@@ -153,15 +146,42 @@ public class StudioActivityPresenter {
 
     private void openUserModel(UserModel model){
 
-        editorFragmentView.setOnFigureChangeListener(new OnFigureChangeListener() {
-            @Override
-            public void onFigureChanged() {
-                updateBackwardForwardButtons();
-            }
-        });
+
         editorFragmentView.setModelToOpen(model);
         studioActivityView.loadFragment(StudioActivity.EDITORFRAGMENTID);
         currentUserModel = model;
+        editorFragmentView.setOnSurfaceViewCreatedListener(new EditorFragment.OnSurfaceViewCreatedListener() {
+            @Override
+            public void onSurfaceViewCreated() {
+                editorFragmentView.getRenderer().setChangesRequestListener(new CubeRenderer.ChangesRequestedListener() {
+                    @Override
+                    public void onActionRequested() {
+
+
+
+                        clearChangeCommitThreads();
+                        changesCommitWaitTask = new ChangeCommitWaitingTask();
+                        changesCommitWaitTask.execute(null, null, null);
+
+
+                    }
+                });
+                editorFragmentView.getRenderer().getFigureChangeManager().setChangeCommitListener(new FigureChangesManager.ChangeCommitListener() {
+                    @Override
+                    public void onChangeCommit() {
+                        synchronized (changesCommitLock){
+
+                            figureChangeCommit();
+                            changesCommitLock.notifyAll();
+
+                        }
+
+                    }
+                });
+
+                updateBackwardForwardButtons();
+            }
+        });
 
     }
 
@@ -207,10 +227,9 @@ public class StudioActivityPresenter {
 
     public void saveClicked(){
 
-        studioActivityView.showProgressBar();
-
         if (currentUserModel != null && figureExists(currentUserModel.getName())){
 
+            studioActivityView.showProgressBar();
             ImageLoader.getInstance().setClearImageCache(true);
             UserModel renderingModel = editorFragmentView.getRenderer().getRenderingModel();
             renderingModel.setName(currentUserModel.getName());
@@ -234,11 +253,20 @@ public class StudioActivityPresenter {
 
         if(figureExists(name)) studioActivityView.showToast("This name already exists");
 
-        studioActivityView.showProgressBar();
-
         saveUserModel(name);
         saveImage(name);
 
+    }
+
+    public void openMenuClicked(){
+
+        clearChangeCommitThreads();
+
+    }
+
+    public void viewModeClicked(){
+        studioActivityView.showProgressBar();
+        //new ChangeCommitWaitingTask().execute(null, null, null);
     }
 
     private boolean figureExists(String name){
@@ -293,6 +321,42 @@ public class StudioActivityPresenter {
 
     }
 
+
+    class ChangeCommitWaitingTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+
+            synchronized (changesCommitLock){
+
+                changeCommit = false;
+                while(!changeCommit){
+                    try {
+                        changesCommitLock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                changeCommit = false;
+
+
+            }
+
+            return null;
+
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            updateBackwardForwardButtons();
+
+        }
+    }
+
     class ImageSaveWaitTask extends AsyncTask<Void, Void, Void>{
 
         private String imageName;
@@ -316,7 +380,7 @@ public class StudioActivityPresenter {
 
                             synchronized (lock){
                                 setImageSaved();
-                                lock.notify();
+                                lock.notifyAll();
                             }
 
                         }
@@ -355,6 +419,20 @@ public class StudioActivityPresenter {
         imageSaved = true;
     }
 
+    private synchronized void figureChangeCommit(){
+        changeCommit = true;
+    }
+
+    private void clearChangeCommitThreads(){
+
+        synchronized(changesCommitLock){
+
+            figureChangeCommit();
+            changesCommitLock.notifyAll();
+
+        }
+
+    }
 
 
 
