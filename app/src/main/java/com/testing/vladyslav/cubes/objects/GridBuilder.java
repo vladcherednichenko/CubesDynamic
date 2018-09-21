@@ -25,13 +25,22 @@ public class GridBuilder {
     private int STRIDE = 0;
     private float cubeSize = 1f;
 
+    private int dimensionsNumber = 4;
+    private float[] gridDimensions = new float[dimensionsNumber];
+
+    private final int gridMinX = 0;
+    private final int gridMaxX = 1;
+
+    private final int gridMinZ = 2;
+    private final int gridMaxZ = 3;
 
     public int maxGridSize = Settings.unlimitedGrid ? Settings.unlimitedGridSize : Settings.maximumGridSize;
     public int minGridSize = Settings.minimumGridSize;
     public int gridSize = minGridSize;
 
 
-    private float gridHeight = -1.5f;
+    private float gridHeight = Settings.gridHeight;
+    private PixioPoint gridCenter = new PixioPoint(0f, gridHeight, 0f);
     private int vertexNumber;
 
     private VertexArray vertexPosArray;
@@ -55,31 +64,54 @@ public class GridBuilder {
     public boolean isGridMinimumSize(){return gridSize == minGridSize;}
     public boolean isGridMaximumSize(){return gridSize == maxGridSize;}
 
-    public void expandGrid(){
+//    public void expandGrid(){
+//
+//        if(!isGridMaximumSize()){
+//
+//            gridSize+=2;
+//            buildGrid(gridSize, gridCenter);
+//            buildTiles(gridSize, gridCenter);
+//            bindAttributesData();
+//
+//        }
+//
+//    }
+//
+//    public void narrowGrid(){
+//
+//        if(!isGridMinimumSize()){
+//
+//            gridSize-=2;
+//            buildGrid(gridSize, gridCenter);
+//            buildTiles(gridSize, gridCenter);
+//            bindAttributesData();
+//
+//        }
+//
+//    }
 
-        if(!isGridMaximumSize()){
+    public void updateGrid(float minX, float maxX, float minZ, float maxZ){
 
-            gridSize+=2;
-            buildGrid(gridSize, gridHeight);
-            buildTiles(gridSize, gridHeight);
-            bindAttributesData();
+        if(minX == gridDimensions[gridMinX] || maxX == gridDimensions[gridMaxX] || minZ == gridDimensions[gridMinZ] || maxZ == gridDimensions[gridMaxZ]){
+
+            if(gridSize >=maxGridSize){
+
+                gridSize = maxGridSize;
+
+
+            }else{
+
+                gridSize+=2;
+                buildGrid(gridSize, gridCenter);
+                buildTiles(gridSize, gridCenter);
+                bindAttributesData();
+
+            }
 
         }
 
     }
 
-    public void narrowGrid(){
-
-        if(!isGridMinimumSize()){
-
-            gridSize-=2;
-            buildGrid(gridSize, gridHeight);
-            buildTiles(gridSize, gridHeight);
-            bindAttributesData();
-
-        }
-
-    }
 
     public void setGridSize(int size){
 
@@ -88,69 +120,59 @@ public class GridBuilder {
 
         gridSize = size;
 
-        buildGrid(gridSize, gridHeight);
-        buildTiles(gridSize, gridHeight);
+        buildGrid(gridSize, gridCenter);
+        buildTiles(gridSize, gridCenter);
         bindAttributesData();
 
     }
 
-    public GridBuilder(float height){
+    public GridBuilder(){
 
-        this.gridHeight = height;
+
 
     }
 
     public void build(){
-        buildGrid(gridSize, gridHeight);
-        buildTiles(gridSize, gridHeight);
+        buildGrid(gridSize, gridCenter);
+        buildTiles(gridSize, gridCenter);
     }
 
-    private void buildGrid(int size, float height){
+
+
+    private void buildGrid(int size, PixioPoint center){
 
         vertexPositionData = new float[(size+1) * 4 * POSITION_COMPONENT_COUNT];
         vertexColorData = new float[(size+1) * 4 * COLOR_COORDINATES_COMPONENT_COUNT];
 
         resetOffsets();
 
-        PixioColor color = new PixioColor("#828282");
+        PixioColor color = new PixioColor(Settings.gridColor);
 
-        PixioPoint defaultHorizontalStartPoint = new PixioPoint(0f, height, -size / 2f);
-        PixioPoint defaultHorizontalEndPoint = new PixioPoint(0f, height, size / 2f);
+        PixioPoint defaultHorizontalStartPoint = new PixioPoint(center.x - size/2, center.y, center.z - size / 2f);
+        PixioPoint defaultHorizontalEndPoint = new PixioPoint(center.x - size/2, center.y, center.z + size / 2f);
 
-        PixioPoint defaultVerticalStartPoint = new PixioPoint(-size / 2f, height, 0f);
-        PixioPoint defaultVerticalEndPoint = new PixioPoint(size / 2f, height, 0f);
+        PixioPoint defaultVerticalStartPoint = new PixioPoint(center.x -size / 2f, center.y, center.z - size/2);
+        PixioPoint defaultVerticalEndPoint = new PixioPoint(center.x + size / 2f, center.y, center.z - size/2);
+
 
 
         grid = new ArrayList<>();
-
         int linesInOneRow = (size+1);
 
-        defaultVerticalStartPoint.translateZ((-1) * (float)size / 2f);
-        defaultVerticalEndPoint.translateZ((-1) * (float)size / 2f);
 
-        defaultHorizontalStartPoint.translateX((-1) * (float)size / 2f);
-        defaultHorizontalEndPoint.translateX((-1) * (float)size / 2f);
-
-
-        //PixioPoint default
-
-        //create horizontal lines
         for (int i = 0; i< linesInOneRow; i++){
 
+            //create horizontal lines
             appendLine(new Line(defaultHorizontalStartPoint.clone(), defaultHorizontalEndPoint.clone(), color));
             defaultHorizontalEndPoint.translateX(1f);
             defaultHorizontalStartPoint.translateX(1f);
 
-        }
-
-        //create vertical lines
-        for (int i = 0; i< linesInOneRow; i++){
-
+            //create vertical lines
             appendLine(new Line(defaultVerticalStartPoint, defaultVerticalEndPoint, color));
             defaultVerticalEndPoint.translateZ(1f);
             defaultVerticalStartPoint.translateZ(1f);
-
         }
+
 
         vertexNumber = vertexPositionData.length / POSITION_COMPONENT_COUNT;
 
@@ -162,13 +184,14 @@ public class GridBuilder {
 
     }
 
-    private void buildTiles(float gridSize, float gridHeight){
+    private void buildTiles(float gridSize, PixioPoint gridCenter){
 
         tileCenters = new ArrayList<>();
 
-        PixioPoint defaultTilePosition = new PixioPoint(-(float)gridSize/2 + cubeSize/2, gridHeight - cubeSize / 2, -(float)gridSize/2 + cubeSize/2);
+        PixioPoint defaultTilePosition = new PixioPoint( gridCenter.x - gridSize/2 + cubeSize/2, gridCenter.y - cubeSize / 2, gridCenter.z-gridSize/2 + cubeSize/2);
 
-        //tileCenters.add(defaultTilePosition.clone());
+        gridDimensions[gridMinX] = defaultTilePosition.x;
+        gridDimensions[gridMinZ] = defaultTilePosition.z;
 
         for (int i = 0; i< gridSize; i++){
 
@@ -179,6 +202,9 @@ public class GridBuilder {
                 center.translateX(cubeSize * j);
 
                 tileCenters.add(center);
+
+                gridDimensions[gridMaxX] = center.x;
+                gridDimensions[gridMaxZ] = center.z;
 
             }
 
@@ -210,23 +236,25 @@ public class GridBuilder {
 
     }
 
-    public void lowerGrid(){
-
-        buildGrid(gridSize, gridHeight-=1f);
-        vertexPosArray = new VertexArray(vertexPositionData);
-        vertexColorArray = new VertexArray(vertexColorData);
-        bindAttributesData();
-
-    }
-
-    public void raiseGrid(){
-
-        buildGrid(gridSize, gridHeight+=1f);
-        vertexPosArray = new VertexArray(vertexPositionData);
-        vertexColorArray = new VertexArray(vertexColorData);
-        bindAttributesData();
-
-    }
+//    public void lowerGrid(){
+//
+//        gridCenter.translateY(-1f);
+//        buildGrid(gridSize, gridCenter);
+//        vertexPosArray = new VertexArray(vertexPositionData);
+//        vertexColorArray = new VertexArray(vertexColorData);
+//        bindAttributesData();
+//
+//    }
+//
+//    public void raiseGrid(){
+//
+//        gridCenter.translateY(-1f);
+//        buildGrid(gridSize, gridCenter);
+//        vertexPosArray = new VertexArray(vertexPositionData);
+//        vertexColorArray = new VertexArray(vertexColorData);
+//        bindAttributesData();
+//
+//    }
 
     public void draw(GridShaderProgram shader){
 

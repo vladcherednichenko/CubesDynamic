@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import static android.opengl.GLES20.GL_SAMPLES;
+import static android.opengl.GLES20.glEnable;
+import static android.opengl.GLES20.glHint;
 import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glVertexAttribPointer;
@@ -36,6 +39,9 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     private volatile float xAngle = -45f;
     private volatile float yAngle = 10f;
+
+    private float strideX = 0f;
+    private float strideY = 0f;
 
     private float screenshotXAngle = -45f;
     private float screenshotYAngle = 10f;
@@ -56,8 +62,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     //matrix that undo the effects of view and projection matrix
     private final float[] invertedViewProjectionMatrix = new float[16];
-
-    private float[] scatter = {0.0f, 2.0f, 0.0f};
 
     /**
      * Stores a copy of the model matrix specifically for the light position.
@@ -97,13 +101,14 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private GridBuilder gridBuilder;
 
     private boolean lowerGrid = false;
-    private float gridHeight = -1.5f;
 
     private boolean shouldAddCube = false;
     private boolean shouldEditCubeColor = false;
     private boolean shouldDeleteCube = false;
     private boolean shouldMakeScreenshot = false;
-
+    private boolean shouldBackwards = false;
+    private boolean shouldForward = false;
+    private boolean shouldLoadNewModel = false;
 
     private float scaleFactor = 1f;
     private ObjectSelectHelper.TouchResult touchResult;
@@ -111,9 +116,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     private int currentColorIndex = 240;
 
-    private boolean shouldBackwards = false;
-    private boolean shouldForward = false;
-    private boolean shouldLoadNewModel = false;
 
     private boolean buildingMode = false;
     private boolean colorEditingMode = false;
@@ -160,6 +162,11 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     }
 
     public FigureChangesManager getFigureChangeManager(){return builder.getChangesManager();}
+
+    public void setStride(float strideX, float strideY){
+        this.strideX = strideX /scaleFactor;
+        this.strideY = strideY /scaleFactor;
+    }
 
     public void resetModes(){buildingMode = false; colorEditingMode = false; deleteMode = false;}
 
@@ -214,7 +221,9 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         cubeCenters.addAll(tileCenters);
 
-        touchResult = ObjectSelectHelper.getTouchResult(cubeCenters, normalizedX, normalizedY, invertedViewProjectionMatrix, modelMatrix, scaleFactor, gridHeight);
+
+        //translateM(modelMatrix, 0, -strideX, strideY, 0f);
+        touchResult = ObjectSelectHelper.getTouchResult(cubeCenters, normalizedX, normalizedY, invertedViewProjectionMatrix, modelMatrix, scaleFactor, strideX, strideY, (float)height/width, Settings.gridHeight);
         if(!touchResult.cubeTouched) return;
 
         if(buildingMode){
@@ -287,7 +296,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         gridShader = new GridShaderProgram(context);
 
-        gridBuilder = new GridBuilder(gridHeight);
+        gridBuilder = new GridBuilder();
         gridBuilder.build();
 
         builder.setGridBuilder(gridBuilder);
@@ -297,7 +306,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         gridBuilder.bindAttributesData();
         builder.bindAttributesData();
-
 
 
 
@@ -380,22 +388,24 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
         //manipulations with the cubes model matrix
+        //push figure to the distance
         Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -7.0f);
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, -7.0f);
 
 
         if (shouldMakeScreenshot){
 
             PixioPoint figureCenter = builder.getFigureParams().getFigureCenter();
 
-            Matrix.translateM(modelMatrix, 0, -figureCenter.x, 0.0f, 0f);
-            Matrix.translateM(modelMatrix, 0, 0.0f, -figureCenter.y, 0f);
-            Matrix.translateM(modelMatrix, 0, 0.0f, 0.0f, -figureCenter.z);
+            Matrix.translateM(modelMatrix, 0, -figureCenter.x, -figureCenter.y, -figureCenter.z);
 
             rotateM(modelMatrix, 0, screenshotYAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, screenshotXAngle, 0f, 1f, 0f);
 
         }else{
+            //set user made stride
+            Matrix.translateM(modelMatrix, 0, strideX, -strideY, 0.0f);
+            //set user made rotation
             rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
         }

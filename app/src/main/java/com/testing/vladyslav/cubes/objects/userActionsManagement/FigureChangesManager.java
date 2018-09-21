@@ -1,6 +1,7 @@
 package com.testing.vladyslav.cubes.objects.userActionsManagement;
 
 import com.testing.vladyslav.cubes.objects.PixioPoint;
+import com.testing.vladyslav.cubes.util.Geometry;
 
 import java.util.ArrayList;
 
@@ -10,6 +11,8 @@ public class FigureChangesManager {
     public static final int CAN_BACKWARD = 1;
     public static final int CAN_FORWARD = 2;
     public static final int CAN_FORWARD_BACKWARD = 3;
+
+    public PixioPoint strideVector = new PixioPoint(0f, 0f, 0f);
 
     private int state;
 
@@ -30,6 +33,7 @@ public class FigureChangesManager {
         void addCube(PixioPoint center, int color);
         void deleteCube(PixioPoint center);
         void paintCube(PixioPoint center, int color);
+        void strideFigure(Geometry.Vector strideVector);
     }
 
 
@@ -74,7 +78,76 @@ public class FigureChangesManager {
         return currentCommandPointer >= 0;
     }
 
-    public void newCommandAddCube(final PixioPoint cubeCenter, final int color){
+//    public void newCommandAddCube(final PixioPoint cubeCenter, final int color){
+//
+//        clearForwards();
+//
+//        commandsHistory.add(new Command() {
+//            @Override
+//            public void execute() {
+//                cInterface.addCube(cubeCenter, color);
+//                commitChange();
+//            }
+//
+//            @Override
+//            public void undo() {
+//                cInterface.deleteCube(cubeCenter);
+//                commitChange();
+//            }
+//        });
+//
+//        updateCommandPointer();
+//        commandsHistory.get(currentCommandPointer).execute();
+//
+//    }
+//
+//    public void newCommandPaintCube(final PixioPoint cubeCenter, final int oldColor, final int newColor){
+//
+//        clearForwards();
+//
+//        commandsHistory.add(new Command() {
+//            @Override
+//            public void execute() {
+//                cInterface.paintCube(cubeCenter, newColor);
+//                commitChange();
+//            }
+//
+//            @Override
+//            public void undo() {
+//                cInterface.paintCube(cubeCenter, oldColor);
+//                commitChange();
+//            }
+//        });
+//
+//        updateCommandPointer();
+//        commandsHistory.get(currentCommandPointer).execute();
+//
+//    }
+//
+//    public void newCommandDeleteCube(final PixioPoint cubeCenter, final int color){
+//
+//        clearForwards();
+//
+//        commandsHistory.add(new Command() {
+//            @Override
+//            public void execute() {
+//                cInterface.deleteCube(cubeCenter);
+//                commitChange();
+//            }
+//
+//            @Override
+//            public void undo() {
+//                cInterface.addCube(cubeCenter, color);
+//                commitChange();
+//            }
+//        });
+//
+//        updateCommandPointer();
+//        commandsHistory.get(currentCommandPointer).execute();
+//
+//    }
+
+    public void newCommandAddCube(final PixioPoint cubeCenter, final int color, final Geometry.Vector strideVector){
 
         clearForwards();
 
@@ -82,11 +155,17 @@ public class FigureChangesManager {
             @Override
             public void execute() {
                 cInterface.addCube(cubeCenter, color);
+                if(strideVector != null){
+                    cInterface.strideFigure(strideVector);
+                }
                 commitChange();
             }
 
             @Override
             public void undo() {
+                if(strideVector!= null){
+                    cInterface.strideFigure(strideVector.invertedVector());
+                }
                 cInterface.deleteCube(cubeCenter);
                 commitChange();
             }
@@ -120,19 +199,25 @@ public class FigureChangesManager {
 
     }
 
-    public void newCommandDeleteCube(final PixioPoint cubeCenter, final int color){
+    public void newCommandDeleteCube(final PixioPoint cubeCenter, final int color, final Geometry.Vector strideVector){
 
         clearForwards();
 
         commandsHistory.add(new Command() {
             @Override
             public void execute() {
+                if(strideVector != null){
+                    cInterface.strideFigure(strideVector);
+                }
                 cInterface.deleteCube(cubeCenter);
                 commitChange();
             }
 
             @Override
             public void undo() {
+                if(strideVector != null){
+                    cInterface.strideFigure(strideVector.invertedVector());
+                }
                 cInterface.addCube(cubeCenter, color);
                 commitChange();
             }

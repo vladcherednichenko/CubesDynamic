@@ -13,7 +13,7 @@ public class Geometry {
 
     public static float distanceBetween(PixioPoint point, Ray ray) {
         Vector p1ToPoint = vectorBetween(ray.point, point);
-        Vector p2ToPoint = vectorBetween(ray.point.translate(ray.vector), point);
+        Vector p2ToPoint = vectorBetween(ray.point.translateAndCopy(ray.vector), point);
 
         // The length of the cross product gives the area of an imaginary
         // parallelogram having the two vectors as sides. A parallelogram can be
@@ -52,6 +52,12 @@ public class Geometry {
             this.x = b.x - a.x;
             this.y = b.y - a.y;
             this.z = b.z - a.z;
+
+        }
+
+        public Vector invertedVector(){
+
+            return new Vector(-this.x, -this.y, -this.z);
 
         }
 

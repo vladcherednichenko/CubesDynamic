@@ -18,7 +18,13 @@ public class PixioPoint {
     public void translateY(float dy){this.y+=dy; }
     public void translateZ(float dz){this.z+=dz; }
 
-    public PixioPoint translate(Geometry.Vector vector) {
+    public void translate(Geometry.Vector vector){
+        x += vector.x;
+        y += vector.y;
+        z += vector.z;
+    }
+
+    public PixioPoint translateAndCopy(Geometry.Vector vector) {
         return new PixioPoint(
                 x + vector.x,
                 y + vector.y,

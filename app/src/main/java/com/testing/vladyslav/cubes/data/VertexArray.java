@@ -14,7 +14,7 @@ import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glVertexAttribPointer;
 import static com.testing.vladyslav.cubes.Constants.BYTES_PER_FLOAT;
 
-public class VertexArray {
+public class  VertexArray {
 
     private FloatBuffer floatBuffer;
 

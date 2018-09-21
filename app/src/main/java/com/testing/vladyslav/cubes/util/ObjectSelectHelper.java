@@ -24,7 +24,7 @@ public class ObjectSelectHelper {
         }
     }
 
-    public static TouchResult getTouchResult(ArrayList<PixioPoint>cubeCenters, float normalizedX, float normalizedY, float[] invertedViewProjectionMatrix, float [] modelMatrix, float scaleFactor, float gridHeight){
+    public static TouchResult getTouchResult(ArrayList<PixioPoint>cubeCenters, float normalizedX, float normalizedY, float[] invertedViewProjectionMatrix, float [] modelMatrix, float scaleFactor, float strideX, float strideY, float screenRatio, float gridHeight){
 
 
 
@@ -32,7 +32,7 @@ public class ObjectSelectHelper {
         float cubeSize = 1f;
         float sphereRadius = cubeSize / 2 * (float)Math.sqrt(2);
 
-        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX * 10 / scaleFactor , normalizedY * 10 / scaleFactor, invertedViewProjectionMatrix);
+        Geometry.Ray ray = convertNormalized2DPointToRay((normalizedX ) * 10 / scaleFactor -strideX*screenRatio , (normalizedY ) * 10 / scaleFactor + strideY, invertedViewProjectionMatrix);
 
         Iterator<PixioPoint> iterator = cubeCenters.iterator();
 
@@ -215,7 +215,7 @@ public class ObjectSelectHelper {
 
         //Log.d("Touched side : ", touchedSide.name);
 
-        return center.clone().translate(touchedSide.normal);
+        return center.clone().translateAndCopy(touchedSide.normal);
         //return center.clone();
 
 

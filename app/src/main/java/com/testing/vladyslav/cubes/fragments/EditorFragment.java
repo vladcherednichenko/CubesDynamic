@@ -50,6 +50,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     private TextView txt_save_as;
     private TextView txt_open;
     private TextView txt_view_mode;
+    private TextView debugTextView;
 
     private CustomRelativeLayout editor_color_row;
 
@@ -218,6 +219,15 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
         surfaceView.getRenderer().setBuildingMode();
         img_add.setImageAlpha(nonTransparentAlpha);
+
+
+        debugTextView = view.findViewById(R.id.debugTextView);
+        surfaceView.setGesturesListener(new CubeSurfaceView.GesturesListener() {
+            @Override
+            public void log(String s) {
+                debugTextView.setText(s);
+            }
+        });
 
 
 
