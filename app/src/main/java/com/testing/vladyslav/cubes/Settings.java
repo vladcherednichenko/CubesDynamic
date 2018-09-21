@@ -10,9 +10,11 @@ public class Settings {
     public static int MEDIUM = 1;
     public static int ULTRA = 2;
     public quality graphicsQuality = quality.MEDIUM;
+    public static boolean dynamicShadows = false;
     public static boolean antialiasing = true;
 
     //graphics editor
+    public static String editorBackGroundColor = "#eeeeef";
     //grid
     public static String gridColor = "#828282";
     public static boolean unlimitedGrid = false;

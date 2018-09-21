@@ -14,6 +14,7 @@ import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesMa
 import com.testing.vladyslav.cubes.programs.GridShaderProgram;
 import com.testing.vladyslav.cubes.programs.ShaderProgram;
 import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
+import com.testing.vladyslav.cubes.util.PixioColor;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -23,6 +24,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import static android.opengl.GLES20.GL_SAMPLES;
+import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glHint;
 import static android.opengl.GLES20.glReadPixels;
@@ -264,7 +266,10 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
-        // Set the background clear color to black.
+
+
+        PixioColor bgColor = new PixioColor(Settings.editorBackGroundColor);
+        //glClearColor(bgColor.RED, bgColor.GREEN, bgColor.BLUE, 0.0f);
         GLES20.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
         // Use culling to remove back faces.
@@ -340,7 +345,9 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 glUnused) {
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+
 
 
         //add new grid if needed
@@ -506,10 +513,10 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             cubeShader.setScaleFactor(scaleFactor);
         }
 
-
-        builder.draw(cubeShader);
-
         if(shouldMakeScreenshot){
+            glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+
+            builder.draw(cubeShader);
 
             if(screenshotHandler != null){
 
@@ -517,8 +524,12 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
             }
             shouldMakeScreenshot = false;
+        }else{
+
+            builder.draw(cubeShader);
 
         }
+
 
 
     }
