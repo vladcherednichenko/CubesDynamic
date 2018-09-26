@@ -7,12 +7,17 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.objects.Background;
+import com.testing.vladyslav.cubes.objects.Cube;
 import com.testing.vladyslav.cubes.objects.GridBuilder;
 import com.testing.vladyslav.cubes.objects.FigureBuilder;
 import com.testing.vladyslav.cubes.objects.PixioPoint;
 import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
-import com.testing.vladyslav.cubes.programs.GridShaderProgram;
-import com.testing.vladyslav.cubes.programs.ShaderProgram;
+import com.testing.vladyslav.cubes.shaders.BackGroundShader;
+import com.testing.vladyslav.cubes.shaders.DynamicModelShader;
+import com.testing.vladyslav.cubes.shaders.GridShaderProgram;
+import com.testing.vladyslav.cubes.shaders.ModelShader;
+import com.testing.vladyslav.cubes.shaders.StaticModelShader;
 import com.testing.vladyslav.cubes.util.ObjectSelectHelper;
 import com.testing.vladyslav.cubes.util.PixioColor;
 
@@ -23,10 +28,7 @@ import java.util.ArrayList;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import static android.opengl.GLES20.GL_SAMPLES;
 import static android.opengl.GLES20.glClearColor;
-import static android.opengl.GLES20.glEnable;
-import static android.opengl.GLES20.glHint;
 import static android.opengl.GLES20.glReadPixels;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glVertexAttribPointer;
@@ -96,21 +98,23 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     //shaders
     private GridShaderProgram gridShader;
-    private ShaderProgram cubeShader;
+    private ModelShader cubeShader;
+    private BackGroundShader backGroundShader;
 
     //objects on the screen
     private FigureBuilder builder;
     private GridBuilder gridBuilder;
+    private Background background;
 
     private boolean lowerGrid = false;
 
     private boolean shouldAddCube = false;
     private boolean shouldEditCubeColor = false;
     private boolean shouldDeleteCube = false;
-    private boolean shouldMakeScreenshot = false;
     private boolean shouldBackwards = false;
     private boolean shouldForward = false;
     private boolean shouldLoadNewModel = false;
+    private boolean shouldBindAttributesData = false;
 
     private float scaleFactor = 1f;
     private ObjectSelectHelper.TouchResult touchResult;
@@ -118,15 +122,16 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     private int currentColorIndex = 240;
 
-
     private boolean buildingMode = false;
     private boolean colorEditingMode = false;
     private boolean deleteMode = false;
+    private boolean screenshotMode = false;
+    private boolean viewMode = false;
 
     private int width;
     private int height;
 
-
+    private RendererState currentState;
     private ScreenshotHandler screenshotHandler;
     private ChangesRequestedListener changesRequestedListener;
 
@@ -154,10 +159,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         changeRequested();
     }
 
-    public void makeScreenshot(ScreenshotHandler screenshotHandler){
-        this.shouldMakeScreenshot = true;
-        this.screenshotHandler = screenshotHandler;
-    }
 
     public void setChangesRequestListener(ChangesRequestedListener listener){
         this.changesRequestedListener = listener;
@@ -165,12 +166,32 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     public FigureChangesManager getFigureChangeManager(){return builder.getChangesManager();}
 
-    public void setStride(float strideX, float strideY){
-        this.strideX = strideX /scaleFactor;
-        this.strideY = strideY /scaleFactor;
+    public void resetModes(){buildingMode = false; colorEditingMode = false; deleteMode = false;}
+
+    public void setScreenshotMode(ScreenshotHandler screenshotHandler){
+        this.screenshotMode = true;
+        this.screenshotHandler = screenshotHandler;
+        currentState = new MakeScreenshotState(currentState);
     }
 
-    public void resetModes(){buildingMode = false; colorEditingMode = false; deleteMode = false;}
+    public void setViewMode(boolean b){
+        viewMode = b;
+        strideY = 0f;
+        strideX = 0f;
+
+        shouldAddCube = false;
+        shouldEditCubeColor = false;
+        shouldDeleteCube = false;
+
+        builder.setViewMode(viewMode);
+
+        if(viewMode){
+            shouldBindAttributesData = true;
+            currentState = new ViewState(currentState);
+        }else{
+            currentState.returnPreviousState();
+        }
+    }
 
     public void setBuildingMode(){resetModes(); buildingMode = true; }
 
@@ -178,37 +199,26 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     public void setDeleteMode(){resetModes(); deleteMode = true;}
 
-    public void setScaleFactor(float scaleFactor) {
-        this.scaleFactor = scaleFactor;
-    }
+    public void setScaleFactor(float scaleFactor) {this.scaleFactor = scaleFactor; }
 
-    public float getScaleFactor() {
-        return scaleFactor;
-    }
+    public float getScaleFactor() {return scaleFactor;}
 
     public void setColor(int colorIndex){this.currentColorIndex = colorIndex;}
 
-    public float getXAngle() {
-        return this.xAngle;
-    }
+    public void setStride(float strideX, float strideY){ this.strideX = strideX; this.strideY = strideY; }
+    public void setXAngle(float xAngle) { this.xAngle = xAngle; }
+    public void setYAngle(float yAngle) { this.yAngle = yAngle; }
 
-    public void setXAngle(float xAngle) {
-        this.xAngle = xAngle;
-    }
-
-    public float getYAngle() {
-        return this.yAngle;
-    }
-
-    public void setYAngle(float yAngle) {
-        this.yAngle = yAngle;
-
-    }
+    public float getStrideX(){return strideX;}
+    public float getStrideY(){return strideY;}
+    public float getXAngle() {return this.xAngle; }
+    public float getYAngle() { return this.yAngle; }
 
     public CubeRenderer(Context context) {
 
         this.context = context;
         builder = new FigureBuilder();
+        currentState = new EditingState();
 
     }
 
@@ -216,15 +226,19 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         lowerGrid = true;
     }
 
-    public void handleTouchPress(float normalizedX, float normalizedY){
+    public void handleTouch(float normalizedX, float normalizedY){
+
+        if(viewMode){
+
+            builder.openFigure();
+            return;
+
+        }
 
         ArrayList<PixioPoint> cubeCenters = new ArrayList<>(builder.getCubeCenters());
         ArrayList<PixioPoint> tileCenters = new ArrayList<>(gridBuilder.getTileCenters());
 
         cubeCenters.addAll(tileCenters);
-
-
-        //translateM(modelMatrix, 0, -strideX, strideY, 0f);
         touchResult = ObjectSelectHelper.getTouchResult(cubeCenters, normalizedX, normalizedY, invertedViewProjectionMatrix, modelMatrix, scaleFactor, strideX, strideY, (float)height/width, Settings.gridHeight);
         if(!touchResult.cubeTouched) return;
 
@@ -248,13 +262,16 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         changeRequested();
 
-
     }
 
     public UserModel getRenderingModel(){
 
         return builder.getFigureParams().getModel();
 
+    }
+
+    public ArrayList<Cube> getCubes(){
+        return builder.getFigureParams().getCubeList();
     }
 
     public void setRenderingModel(UserModel model){
@@ -269,8 +286,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
 
         PixioColor bgColor = new PixioColor(Settings.editorBackGroundColor);
-        //glClearColor(bgColor.RED, bgColor.GREEN, bgColor.BLUE, 0.0f);
-        GLES20.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+        glClearColor(bgColor.RED, bgColor.GREEN, bgColor.BLUE, 0.0f);
+        //GLES20.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
         // Use culling to remove back faces.
         GLES20.glEnable(GLES20.GL_CULL_FACE);
@@ -305,13 +322,16 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         gridBuilder.build();
 
         builder.setGridBuilder(gridBuilder);
-        cubeShader = new ShaderProgram(context);
+        cubeShader = Settings.dynamicShadows? new DynamicModelShader(context): new StaticModelShader(context);
 
         builder.build();
 
         gridBuilder.bindAttributesData();
         builder.bindAttributesData();
 
+        background = new Background();
+        background.bindAttributesData();
+        backGroundShader = new BackGroundShader(context);
 
 
     }
@@ -334,12 +354,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         this.width = width;
         this.height = height;
 
-        //Matrix.frustumM(projectionMatrix, 0, left, right, bottom, top, near, far);
-
         Matrix.orthoM(projectionMatrix, 0, left,right, bottom, top, near, far);
-
-
-
 
     }
 
@@ -348,159 +363,298 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
+        if(currentState != null){ currentState.draw();}
 
+    }
 
-        //add new grid if needed
-        if (lowerGrid){
+    private abstract class RendererState{
 
-            lowerGrid = false;
+        RendererState previousState;
 
-        }
+        RendererState(){};
 
-        if(shouldAddCube){
+        public void draw(){ }
 
-            builder.addNewCubeClicked(touchResult.newCubeCenter, currentColorIndex);
-            shouldAddCube = false;
+        void calculateModelMatrix(){
 
-        }
-
-        if(shouldEditCubeColor){
-
-            builder.paintCubeClicked(touchResult.touchedCubeCenter, currentColorIndex);
-            shouldEditCubeColor = false;
+            //manipulations with the cubes model matrix
+            //push figure to the distance
+            Matrix.setIdentityM(modelMatrix, 0);
+            Matrix.translateM(modelMatrix, 0, 0f, 0f, -7.0f);
 
         }
 
-        if(shouldDeleteCube){
-            builder.deleteCubeClicked(touchResult.touchedCubeCenter);
-            shouldDeleteCube = false;
+        void calculateLightMatrices(){
+
+            Matrix.setIdentityM(frontLightModelMatrix, 0);
+            Matrix.translateM(frontLightModelMatrix, 0, 0.0f, 0.0f, -7.0f);
+
+            //count all the light source position
+            float lightDistance = Settings.lightDistance;
+            if(Settings.dynamicShadows){
+                Matrix.translateM(frontLightModelMatrix, 0, 0.0f, 0.0f, lightDistance);
+                multiplyMV(frontLightPosInWorldSpace, 0, frontLightModelMatrix, 0, lightPosInModelSpace, 0);
+                multiplyMV(frontLightPosInEyeSpace, 0, viewMatrix, 0, frontLightPosInWorldSpace, 0);
+            }else{
+                rotateM(frontLightModelMatrix, 0, yAngle, 1f, 0f, 0f);
+                rotateM(frontLightModelMatrix, 0, xAngle, 0f, 1f, 0f);
+
+                System.arraycopy(frontLightModelMatrix ,0, backLightModelMatrix, 0, frontLightModelMatrix.length);
+                System.arraycopy(frontLightModelMatrix ,0, rightLightModelMatrix, 0, frontLightModelMatrix.length);
+                System.arraycopy(frontLightModelMatrix ,0, topLightModelMatrix, 0, frontLightModelMatrix.length);
+                //System.arraycopy(frontLightModelMatrix ,0, leftLightModelMatrix, 0, frontLightModelMatrix.length);
+                //System.arraycopy(frontLightModelMatrix ,0, bottomLightModelMatrix, 0, frontLightModelMatrix.length);
+
+                Matrix.translateM(backLightModelMatrix, 0, 0.0f, 0.0f, -lightDistance);
+                Matrix.translateM(rightLightModelMatrix, 0, lightDistance, 0.0f, 0.0f);
+                Matrix.translateM(topLightModelMatrix,  0, 0.0f, lightDistance, 0.0f);
+                //Matrix.translateM(leftLightModelMatrix, 0, -lightDistance, 0.0f, 0.0f);
+                //Matrix.translateM(bottomLightModelMatrix, 0, 0.0f, -lightDistance, 0.0f);
+
+
+
+                multiplyMV(frontLightPosInWorldSpace, 0, frontLightModelMatrix, 0, lightPosInModelSpace, 0);
+                multiplyMV(frontLightPosInEyeSpace, 0, viewMatrix, 0, frontLightPosInWorldSpace, 0);
+
+                multiplyMV(backLightPosInWorldSpace, 0, backLightModelMatrix, 0, lightPosInModelSpace, 0);
+                multiplyMV(backLightPosInEyeSpace, 0, viewMatrix, 0, backLightPosInWorldSpace, 0);
+
+                multiplyMV(rightLightPosInWorldSpace, 0, rightLightModelMatrix, 0, lightPosInModelSpace, 0);
+                multiplyMV(rightLightPosInEyeSpace, 0, viewMatrix, 0, rightLightPosInWorldSpace, 0);
+
+                multiplyMV(topLightPosInWorldSpace, 0, topLightModelMatrix, 0, lightPosInModelSpace, 0);
+                multiplyMV(topLightPosInEyeSpace, 0, viewMatrix, 0, topLightPosInWorldSpace, 0);
+
+                //Matrix.multiplyMV(leftLightPosInWorldSpace, 0, leftLightModelMatrix, 0, lightPosInModelSpace, 0);
+                //Matrix.multiplyMV(leftLightPosInEyeSpace, 0, viewMatrix, 0, leftLightPosInWorldSpace, 0);
+
+                //Matrix.multiplyMV(bottomLightPosInWorldSpace, 0, bottomLightModelMatrix, 0, lightPosInModelSpace, 0);
+                //Matrix.multiplyMV(bottomLightPosInEyeSpace, 0, viewMatrix, 0, bottomLightPosInWorldSpace, 0);
+
+
+            }
 
         }
 
-        if(shouldBackwards){
-            builder.backwardClicked();
-            shouldBackwards = false;
+        void setUniforms(){
+            // Set our per-vertex lighting gridShader.
+            cubeShader.useProgram();
+            if(Settings.dynamicShadows){
+                cubeShader.setUniforms(modelMatrix, viewMatrix, projectionMatrix,
+                        frontLightPosInEyeSpace, null, null, null, null, null);
+            }else{
+                cubeShader.setUniforms(modelMatrix, viewMatrix, projectionMatrix,
+                        frontLightPosInEyeSpace,
+                        backLightPosInEyeSpace,
+                        leftLightPosInEyeSpace,
+                        rightLightPosInEyeSpace,
+                        topLightPosInEyeSpace,
+                        bottomLightPosInEyeSpace);
+            }
         }
 
-        if(shouldForward){
-            builder.forwardClicked();
-            shouldForward = false;
+        void calculateMVPMatrix(){
+
+            multiplyMM(viewProjectionMatrix, 0, viewMatrix, 0, projectionMatrix, 0);
+            invertM(invertedViewProjectionMatrix, 0, viewProjectionMatrix, 0);
+            translateM(invertedViewProjectionMatrix, 0, 0f, 0f, -10f);
+
+            MVPMatrix = getMVPMatrix(modelMatrix, viewMatrix, projectionMatrix);
+
         }
 
-        if(shouldLoadNewModel){
-            builder.setModel(renderingModel);
-            shouldLoadNewModel = false;
+        void drawBackground(){
+            backGroundShader.useProgram();
+            background.draw(backGroundShader);
         }
 
+        void setScaleFactor(){
+            cubeShader.setScaleFactor(scaleFactor);
+        }
 
+        void drawGrid(){
+            //draw the grid
+            gridShader.useProgram();
+            gridShader.setUniforms(modelMatrix, viewMatrix, projectionMatrix);
+            gridShader.setScaleFactor(scaleFactor);
+            gridBuilder.draw(gridShader);
+        }
 
-        //manipulations with the cubes model matrix
-        //push figure to the distance
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, 0f, 0f, -7.0f);
+        void drawFigure(){
+            builder.draw(cubeShader);
+        }
 
+        void makeScreenshot(){
+            if(screenshotHandler != null){
 
-        if (shouldMakeScreenshot){
+                screenshotHandler.makeScreenshot(getScreenshot());
 
-            PixioPoint figureCenter = builder.getFigureParams().getFigureCenter();
+            }
+            screenshotMode = false;
+        }
 
-            Matrix.translateM(modelMatrix, 0, -figureCenter.x, -figureCenter.y, -figureCenter.z);
+        void returnPreviousState(){
+            currentState = previousState;
+        }
 
-            rotateM(modelMatrix, 0, screenshotYAngle, 1f, 0f, 0f);
-            rotateM(modelMatrix, 0, screenshotXAngle, 0f, 1f, 0f);
+    }
 
-        }else{
+    private class EditingState extends RendererState{
+
+        @Override
+        public void draw() {
+
+            super.draw();
+
+            if(shouldAddCube){
+
+                builder.addNewCubeClicked(touchResult.newCubeCenter, currentColorIndex);
+                shouldAddCube = false;
+
+            }
+
+            if(shouldEditCubeColor){
+
+                builder.paintCubeClicked(touchResult.touchedCubeCenter, currentColorIndex);
+                shouldEditCubeColor = false;
+
+            }
+
+            if(shouldDeleteCube){
+
+                builder.deleteCubeClicked(touchResult.touchedCubeCenter);
+                shouldDeleteCube = false;
+
+            }
+
+            if(shouldBackwards){
+                builder.backwardClicked();
+                shouldBackwards = false;
+            }
+
+            if(shouldForward){
+                builder.forwardClicked();
+                shouldForward = false;
+            }
+
+            if(shouldLoadNewModel){
+                builder.setModel(renderingModel);
+                shouldLoadNewModel = false;
+            }
+
+            calculateModelMatrix();
+
+            drawGrid();
+
+            calculateLightMatrices();
+
+            calculateMVPMatrix();
+
+            setUniforms();
+
+            setScaleFactor();
+
+            drawFigure();
+
+        }
+
+        @Override
+        protected void calculateModelMatrix() {
+
+            super.calculateModelMatrix();
             //set user made stride
-            Matrix.translateM(modelMatrix, 0, strideX, -strideY, 0.0f);
+            Matrix.translateM(modelMatrix, 0, strideX/scaleFactor, -strideY/scaleFactor, 0.0f);
+            //set user made rotation
+            rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
+            rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
+        }
+
+    }
+
+    private class ViewState extends RendererState{
+
+        ViewState(RendererState previousState){
+            this.previousState = previousState;
+        }
+
+
+        @Override
+        public void draw() {
+            super.draw();
+
+            if(shouldBindAttributesData){
+                builder.build();
+                builder.bindAttributesData();
+                shouldBindAttributesData = false;
+            }
+
+            calculateModelMatrix();
+
+            calculateLightMatrices();
+
+            setUniforms();
+
+            setScaleFactor();
+
+            drawFigure();
+
+
+        }
+
+        @Override
+        protected void calculateModelMatrix() {
+
+            super.calculateModelMatrix();
             //set user made rotation
             rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
         }
 
 
+    }
 
-        //draw the grid
-        gridShader.useProgram();
+    private class MakeScreenshotState extends RendererState{
 
+        MakeScreenshotState(RendererState previousState){
+            this.previousState = previousState;
+        }
 
-        gridShader.setUniforms(modelMatrix, viewMatrix, projectionMatrix);
-        gridShader.setScaleFactor(scaleFactor);
+        @Override
+        public void draw() {
 
+            drawBackground();
 
-        if (!shouldMakeScreenshot) {
+            calculateModelMatrix();
 
-            gridBuilder.draw(gridShader);
+            calculateLightMatrices();
+
+            setUniforms();
+
+            setScaleFactor();
+
+            drawFigure();
+
+            makeScreenshot();
+
+            returnPreviousState();
 
         }
 
+        @Override
+        void calculateModelMatrix() {
+            super.calculateModelMatrix();
 
-        //draw the figure
-        // push light behind the screen
-        Matrix.setIdentityM(frontLightModelMatrix, 0);
+            PixioPoint figureCenter = builder.getFigureParams().getFigureCenter();
+            Matrix.translateM(modelMatrix, 0, -figureCenter.x, -figureCenter.y, -figureCenter.z);
 
-        Matrix.translateM(frontLightModelMatrix, 0, 0.0f, 0.0f, -7.0f);
+            rotateM(modelMatrix, 0, screenshotYAngle, 1f, 0f, 0f);
+            rotateM(modelMatrix, 0, screenshotXAngle, 0f, 1f, 0f);
 
-        rotateM(frontLightModelMatrix, 0, yAngle, 1f, 0f, 0f);
-        rotateM(frontLightModelMatrix, 0, xAngle, 0f, 1f, 0f);
+        }
 
-        System.arraycopy(frontLightModelMatrix ,0, backLightModelMatrix, 0, frontLightModelMatrix.length);
-        //System.arraycopy(frontLightModelMatrix ,0, leftLightModelMatrix, 0, frontLightModelMatrix.length);
-        System.arraycopy(frontLightModelMatrix ,0, rightLightModelMatrix, 0, frontLightModelMatrix.length);
-        System.arraycopy(frontLightModelMatrix ,0, topLightModelMatrix, 0, frontLightModelMatrix.length);
-        //System.arraycopy(frontLightModelMatrix ,0, bottomLightModelMatrix, 0, frontLightModelMatrix.length);
+        @Override
+        void setScaleFactor() {
 
-
-        float lightDistance = 100.0f;
-
-
-        Matrix.translateM(frontLightModelMatrix, 0, 0.0f, 0.0f, lightDistance);
-        Matrix.translateM(backLightModelMatrix, 0, 0.0f, 0.0f, -lightDistance);
-        //Matrix.translateM(leftLightModelMatrix, 0, -lightDistance, 0.0f, 0.0f);
-        Matrix.translateM(rightLightModelMatrix, 0, lightDistance, 0.0f, 0.0f);
-        Matrix.translateM(topLightModelMatrix,  0, 0.0f, lightDistance, 0.0f);
-        //Matrix.translateM(bottomLightModelMatrix, 0, 0.0f, -lightDistance, 0.0f);
-
-
-
-        multiplyMV(frontLightPosInWorldSpace, 0, frontLightModelMatrix, 0, lightPosInModelSpace, 0);
-        multiplyMV(frontLightPosInEyeSpace, 0, viewMatrix, 0, frontLightPosInWorldSpace, 0);
-
-        multiplyMV(backLightPosInWorldSpace, 0, backLightModelMatrix, 0, lightPosInModelSpace, 0);
-        multiplyMV(backLightPosInEyeSpace, 0, viewMatrix, 0, backLightPosInWorldSpace, 0);
-
-//        Matrix.multiplyMV(leftLightPosInWorldSpace, 0, leftLightModelMatrix, 0, lightPosInModelSpace, 0);
-//        Matrix.multiplyMV(leftLightPosInEyeSpace, 0, viewMatrix, 0, leftLightPosInWorldSpace, 0);
-
-        multiplyMV(rightLightPosInWorldSpace, 0, rightLightModelMatrix, 0, lightPosInModelSpace, 0);
-        multiplyMV(rightLightPosInEyeSpace, 0, viewMatrix, 0, rightLightPosInWorldSpace, 0);
-
-        multiplyMV(topLightPosInWorldSpace, 0, topLightModelMatrix, 0, lightPosInModelSpace, 0);
-        multiplyMV(topLightPosInEyeSpace, 0, viewMatrix, 0, topLightPosInWorldSpace, 0);
-
-//        Matrix.multiplyMV(bottomLightPosInWorldSpace, 0, bottomLightModelMatrix, 0, lightPosInModelSpace, 0);
-//        Matrix.multiplyMV(bottomLightPosInEyeSpace, 0, viewMatrix, 0, bottomLightPosInWorldSpace, 0);
-
-
-
-        multiplyMM(viewProjectionMatrix, 0, viewMatrix, 0, projectionMatrix, 0);
-        invertM(invertedViewProjectionMatrix, 0, viewProjectionMatrix, 0);
-        translateM(invertedViewProjectionMatrix, 0, 0f, 0f, -10f);
-
-        MVPMatrix = getMVPMatrix(modelMatrix, viewMatrix, projectionMatrix);
-
-
-
-        // Set our per-vertex lighting gridShader.
-        cubeShader.useProgram();
-        cubeShader.setUniforms(modelMatrix, viewMatrix, projectionMatrix,
-                frontLightPosInEyeSpace,
-                backLightPosInEyeSpace,
-                leftLightPosInEyeSpace,
-                rightLightPosInEyeSpace,
-                topLightPosInEyeSpace,
-                bottomLightPosInEyeSpace);
-
-        if (shouldMakeScreenshot){
             float figureSize = builder.getFigureParams().getFigureMaxXYZDimen();
 
             if(figureSize>8){
@@ -508,29 +662,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
                 cubeShader.setScaleFactor(scale);
             }
 
-
-        }else{
-            cubeShader.setScaleFactor(scaleFactor);
         }
-
-        if(shouldMakeScreenshot){
-            glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-
-            builder.draw(cubeShader);
-
-            if(screenshotHandler != null){
-
-                screenshotHandler.makeScreenshot(getScreenshot());
-
-            }
-            shouldMakeScreenshot = false;
-        }else{
-
-            builder.draw(cubeShader);
-
-        }
-
-
 
     }
 

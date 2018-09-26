@@ -1,9 +1,11 @@
 package com.testing.vladyslav.cubes.objects;
 
+import android.support.annotation.NonNull;
+
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.util.PixioColor;
 
-public class Cube {
+public class Cube implements Comparable<Cube>{
 
     private static final String TAG = "Cube";
 
@@ -18,8 +20,6 @@ public class Cube {
     public float[] cubePositionData;
     public float[] cubeColorData;
     public float[] cubeNormalData;
-
-
 
 
     public Cube(PixioPoint center, PixioColor color){
@@ -104,4 +104,10 @@ public class Cube {
         }
     }
 
+    @Override
+    public int compareTo(@NonNull Cube cube) {
+        float compareOrder = cube.center.y;
+
+        return Math.round(this.center.y - compareOrder);
+    }
 }

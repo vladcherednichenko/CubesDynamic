@@ -2,6 +2,7 @@ package com.testing.vladyslav.cubes;
 
 public class Settings {
 
+
     public static float cubeSize = 1f;
 
     //graphics settings
@@ -9,11 +10,13 @@ public class Settings {
     public static int LOW = 0;
     public static int MEDIUM = 1;
     public static int ULTRA = 2;
-    public quality graphicsQuality = quality.MEDIUM;
+    public static int graphicsQuality = 1;
     public static boolean dynamicShadows = false;
-    public static boolean antialiasing = true;
+    public static boolean antialiasing = false;
+    public static float lightDistance = 100.0f;
 
     //graphics editor
+    public static boolean debugTextView = false;
     public static String editorBackGroundColor = "#eeeeef";
     //grid
     public static String gridColor = "#828282";

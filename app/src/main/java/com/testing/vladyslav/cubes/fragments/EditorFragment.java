@@ -3,28 +3,29 @@ package com.testing.vladyslav.cubes.fragments;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.testing.vladyslav.cubes.ColorsLayoutCreator;
 import com.testing.vladyslav.cubes.CubeRenderer;
 import com.testing.vladyslav.cubes.CubeSurfaceView;
 import com.testing.vladyslav.cubes.CustomRelativeLayout;
+import com.testing.vladyslav.cubes.PixioCube;
 import com.testing.vladyslav.cubes.R;
-import com.testing.vladyslav.cubes.activities.StudioActivity;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
-import com.testing.vladyslav.cubes.objects.FigureBuilder;
 import com.testing.vladyslav.cubes.presenters.StudioActivityPresenter;
 
 import java.util.ArrayList;
@@ -52,9 +53,19 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     private TextView txt_view_mode;
     private TextView debugTextView;
 
+    private RelativeLayout toolsRow;
+    private LinearLayoutCompat colorsRow;
+
+
     private CustomRelativeLayout editor_color_row;
 
+    //metrics
+    private float floatColorWidth;
+    private int intColorWidth;
+    private int screenWidth;
+    float scaleSize = 1.4f;
 
+    private float toolBarSize = 0.07f;
     private int colorsNumber = 16;
     private int nonTransparentAlpha = 255;
     private int transparentAlpha = 90;
@@ -203,6 +214,9 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             }
         });
 
+        toolsRow = view.findViewById(R.id.tools_row);
+        colorsRow = view.findViewById(R.id.figure_colors_row);
+        colorsRow.setVisibility(View.INVISIBLE);
 
         surfaceView = view.findViewById(R.id.surfaceView);
         if(modelToRender != null){
@@ -242,6 +256,13 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     public void setPresenter(StudioActivityPresenter presenter){this.presenter = presenter;}
 
     private void createColorRowLayout(){
+
+        Display display = getActivity().getWindowManager(). getDefaultDisplay();
+        Point size = new Point();
+        display. getSize(size);
+        screenWidth = size. x;
+        floatColorWidth = (float)screenWidth / colorsNumber;
+        intColorWidth = Math.round(floatColorWidth);
 
         editor_color_row = view.findViewById(R.id.editor_colors_row);
         editor_color_row.setActivity(this.getActivity());
@@ -284,11 +305,17 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         img_shadow_right.setVisibility(View.INVISIBLE);
 
 
+        RelativeLayout.LayoutParams toolsRowParams = (RelativeLayout.LayoutParams) toolsRow.getLayoutParams();
+        toolsRowParams.bottomMargin = Math.round(floatColorWidth * scaleSize);
+        //toolsRowParams.setMargins(0, 0, 0, Math.round(floatColorWidth * scaleSize));
+
+        toolsRow.setLayoutParams(toolsRowParams);
+
+
     }
 
     private void selectColor(int colorPosition){
 
-        float scaleSize = 1.4f;
         int elevation = 10;
         int shadowSize = 0;
 
@@ -304,7 +331,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         image.setElevation(elevation);
 
         //size
-        image.setTranslationY(params.height - params.height * scaleSize + shadowSize + elevation);
+        image.setTranslationY(params.height - params.height * scaleSize);
         int deltaWidth = Math.round(params.height * scaleSize) - params.height;
 
         params.width = Math.round(params.width * scaleSize);
@@ -374,14 +401,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
         int colorsNumber = 16;
 
-        Display display = getActivity().getWindowManager(). getDefaultDisplay();
-        Point size = new Point();
-        display. getSize(size);
-        int screenWidth = size. x;
-        final int intColorWidth = Math.round((float)screenWidth / colorsNumber);
-        final int intColorHeight = intColorWidth;
-        float floatColorSize = (float)screenWidth / colorsNumber;
-
         for (int i = 0; i< colorRow.size(); i++){
 
             ImageView image = colorRow.get(i);
@@ -389,8 +408,8 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
 
 
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
-            params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorSize*i), 0, 0, 0);
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorWidth);
+            params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorWidth*i), 0, 0, 0);
 
             image.setPadding(0, 0, 0, 0);
 
@@ -419,6 +438,42 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         img_add.setImageAlpha(transparentAlpha);
         img_change_color.setImageAlpha(transparentAlpha);
 
+
+    }
+
+    public void viewModeEnable(boolean b, ArrayList<PixioCube> cubes){
+
+        if(b){
+
+            closeMenu();
+            ColorsLayoutCreator.createColorBlocksLayout(getActivity().getApplicationContext(), cubes, colorsRow, null);
+            txt_view_mode.setText("Editor mode");
+            Animation down = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_down);
+            editor_color_row.startAnimation(down);
+            toolsRow.startAnimation(down);
+            toolsRow.setVisibility(View.INVISIBLE);
+            editor_color_row.setVisibility(View.INVISIBLE);
+
+
+            Animation up = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_up);
+            colorsRow.startAnimation(up);
+            colorsRow.setVisibility(View.VISIBLE);
+
+        }else{
+            closeMenu();
+            txt_view_mode.setText("View mode");
+            Animation up = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_up);
+            toolsRow.startAnimation(up);
+            editor_color_row.startAnimation(up);
+            toolsRow.setVisibility(View.VISIBLE);
+            editor_color_row.setVisibility(View.VISIBLE);
+
+
+            Animation down = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_down);
+            colorsRow.startAnimation(down);
+            colorsRow.setVisibility(View.INVISIBLE);
+
+        }
 
     }
 

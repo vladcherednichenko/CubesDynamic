@@ -165,7 +165,7 @@ public class CubeSurfaceView extends GLSurfaceView{
                 currentAction = Math.abs(distanceBetweenPointers - startingDistanceBetweenPointers) > twoPointersMovementDistance? SCALE : MOVE;
 
                 //log on the display
-                if(gesturesListener != null){
+                if(gesturesListener != null && Settings.debugTextView){
                     String text = "First: " + String.valueOf(xPointer1) + " : " + String.valueOf(yPointer1) + "\n"
                             +"Second: " + String.valueOf(xPointer2) + " : " + String.valueOf(yPointer2) + "\n"
                             +"Distance: " + String.valueOf(distanceBetweenPointers) + "\n"
@@ -178,17 +178,15 @@ public class CubeSurfaceView extends GLSurfaceView{
                 float touchCenterDX = touchCenterX - previousTouchCenterX;
                 float touchCenterDY = touchCenterY - previousTouchCenterY;
 
-                figureStrideX += touchCenterDX / screenWidth * movingSensitivity;
-                figureStrideY += touchCenterDY / screenHeight * movingSensitivity;
+//                figureStrideX += touchCenterDX / screenWidth * movingSensitivity;
+//                figureStrideY += touchCenterDY / screenHeight * movingSensitivity;
 
-//                figureStrideX += touchCenterDX ;
-//                figureStrideY += touchCenterDY ;
+                //renderer.setStride( figureStrideX, figureStrideY);
 
 
-                float normalizedStrideX = (figureStrideX / (float) getWidth()) * 2 - 1;
-                float normalizedStrideY = (figureStrideY / (float) getHeight()) * 2 - 1;
-
-                renderer.setStride(figureStrideX, figureStrideY);
+                renderer.setStride(
+                        renderer.getStrideX() + touchCenterDX / screenWidth * movingSensitivity,
+                        renderer.getStrideY() + touchCenterDY / screenHeight * movingSensitivity);
 
                 previousTouchCenterX = touchCenterX;
                 previousTouchCenterY = touchCenterY;
@@ -282,7 +280,7 @@ public class CubeSurfaceView extends GLSurfaceView{
                         float normalizedX = (e.getX() / (float) getWidth()) * 2 - 1;
                         float normalizedY = -((e.getY() / (float) getHeight()) * 2 - 1);
 
-                        renderer.handleTouchPress(normalizedX, normalizedY);
+                        renderer.handleTouch(normalizedX, normalizedY);
                     }
 
                 }

@@ -6,14 +6,18 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 
 import com.testing.vladyslav.cubes.CubeRenderer;
+import com.testing.vladyslav.cubes.PixioCube;
 import com.testing.vladyslav.cubes.activities.StudioActivity;
 import com.testing.vladyslav.cubes.adapters.StudioRecyclerAdapter;
+import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.fragments.EditorFragment;
 import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
 import com.testing.vladyslav.cubes.util.ImageLoader;
 import com.testing.vladyslav.cubes.util.ImagesHelper;
+import com.testing.vladyslav.cubes.util.PixioHelper;
+import com.testing.vladyslav.cubes.util.TextResourceReader;
 
 import java.util.ArrayList;
 
@@ -34,6 +38,8 @@ public class StudioActivityPresenter {
 
     private volatile boolean imageSaved = false;
     private volatile boolean changeCommit = false;
+
+    private boolean viewMode = false;
 
 
     public interface StudioActivityView {
@@ -62,6 +68,7 @@ public class StudioActivityPresenter {
         void setBackwardButtonVisible(Boolean visible);
         void setForwardButtonVisible(Boolean visible);
         void setOnSurfaceViewCreatedListener(EditorFragment.OnSurfaceViewCreatedListener listener);
+        void viewModeEnable(boolean b, ArrayList<PixioCube> cubes);
 
     }
 
@@ -79,6 +86,13 @@ public class StudioActivityPresenter {
         this.editorFragmentView = editorFragmentView;
 
         activityView.loadFragment(StudioActivity.STUDIOFRAGMENTID);
+
+        //check facetlist data loaded
+        if(CubeDataHolder.getInstance().facetListHigh == null) {
+            CubeDataHolder.getInstance().facetListLow = TextResourceReader.getFacetsFromFileObject(studioActivityView.getContext(), "cube_simple.obj");
+            CubeDataHolder.getInstance().facetListMedium = TextResourceReader.getFacetsFromFileObject(studioActivityView.getContext(), "cube_medium.obj");
+            CubeDataHolder.getInstance().facetListHigh = TextResourceReader.getFacetsFromFileObject(studioActivityView.getContext(), "cube_detailed.obj");
+        }
 
     }
 
@@ -265,8 +279,20 @@ public class StudioActivityPresenter {
     }
 
     public void viewModeClicked(){
-        studioActivityView.showProgressBar();
-        //new ChangeCommitWaitingTask().execute(null, null, null);
+
+        ArrayList<PixioCube> cubes = null;
+
+        viewMode = !viewMode;
+        editorFragmentView.getRenderer().setViewMode(viewMode);
+
+        if(viewMode){
+            cubes = PixioHelper.figureToCubeList(editorFragmentView.getRenderer().getCubes());
+
+        }
+
+        editorFragmentView.viewModeEnable(viewMode, cubes);
+
+
     }
 
     private boolean figureExists(String name){
@@ -370,7 +396,7 @@ public class StudioActivityPresenter {
 
             final Object lock = new Object();
 
-            editorFragmentView.getRenderer().makeScreenshot(new CubeRenderer.ScreenshotHandler() {
+            editorFragmentView.getRenderer().setScreenshotMode(new CubeRenderer.ScreenshotHandler() {
                 @Override
                 public void makeScreenshot(Bitmap bitmap) {
 

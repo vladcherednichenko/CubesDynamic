@@ -1,19 +1,23 @@
 package com.testing.vladyslav.cubes.objects;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.testing.vladyslav.cubes.Settings;
+import com.testing.vladyslav.cubes.animation.Animator;
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.data.VertexArray;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
-import com.testing.vladyslav.cubes.programs.ShaderProgram;
+import com.testing.vladyslav.cubes.shaders.ModelShader;
 import com.testing.vladyslav.cubes.util.Geometry;
 import com.testing.vladyslav.cubes.util.PixioColor;
 import com.testing.vladyslav.cubes.util.PixioHelper;
 import com.testing.vladyslav.cubes.util.UserModelHelper;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 import static android.opengl.GLES20.GL_ARRAY_BUFFER;
 import static android.opengl.GLES20.glBindBuffer;
@@ -94,6 +98,8 @@ public class FigureBuilder {
 
         }
 
+        public float getYSize(){return modelDimensions[sizeY];}
+
         boolean cubeOnTheBound(PixioPoint center){
             return (center.x == modelDimensions[boundMinX] + Settings.cubeSize/2 ||
                     center.x == modelDimensions[boundMaxX] - Settings.cubeSize/2 ||
@@ -148,6 +154,10 @@ public class FigureBuilder {
 
         }
 
+        public ArrayList<Cube> getCubeList(){
+            return cubes;
+        }
+
         public PixioPoint getFigureCenter(){
 
             return new PixioPoint(
@@ -187,7 +197,7 @@ public class FigureBuilder {
 
             modelDimensions[sizeX] = modelDimensions[maxX] - modelDimensions[minX];
             modelDimensions[sizeZ] = modelDimensions[maxZ] - modelDimensions[minZ];
-
+            modelDimensions[sizeY] = modelDimensions[maxY] - modelDimensions[minY];
 
         }
 
@@ -200,6 +210,7 @@ public class FigureBuilder {
     private int COLOR_COORDINATES_COMPONENT_COUNT = 4;
     private int NORMAL_COMPONENT_COUNT = 3;
     private int STRIDE = 0;
+    private String tag = "FigureBuilder";
 
 
     private VertexArray vertexPosArray;
@@ -225,6 +236,10 @@ public class FigureBuilder {
     private GridBuilder gridBuilder;
     private FigureChangesManager changesManager;
     private FigureParameters params;
+    private Animator animator;
+
+    private boolean viewMode = false;
+    private boolean isScattered = false;
 
     public ArrayList<PixioPoint> getCubeCenters(){ return cubeCenters;}
 
@@ -308,7 +323,13 @@ public class FigureBuilder {
         if(center == null) return;
         if(!cubeExists(center)) return;
 
-        changesManager.newCommandDeleteCube(center, PixioHelper.hexToColorCode.get(getCubeByCenter(center).color.hexColor), null);
+        try{
+            changesManager.newCommandDeleteCube(center, PixioHelper.hexToColorCode.get(getCubeByCenter(center).color.hexColor), null);
+        }catch (Exception e){
+            Log.d(tag, getCubeByCenter(center).color.hexColor);
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -362,11 +383,6 @@ public class FigureBuilder {
         }
 
         gridBuilder.setGridSize(Math.round(params.getFigureMaxXZDimen()+1) *2);
-//        gridBuilder.setFigurePosition(
-//                params.modelDimensions[params.minX],
-//                params.modelDimensions[params.maxX],
-//                params.modelDimensions[params.minZ],
-//                params.modelDimensions[params.maxZ]);
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
@@ -504,7 +520,24 @@ public class FigureBuilder {
 
     }
 
-    public void draw(ShaderProgram shader){
+    public void openFigure(){
+        isScattered = !isScattered;
+    }
+
+    public void setViewMode(boolean b){
+        viewMode = b;
+        if(viewMode){
+            Collections.sort(cubes);
+            animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
+        }else{
+            isScattered = false;
+        }
+
+    }
+
+
+
+    public void draw(ModelShader shader){
 
         if(params.cubeNumber <= 0){
             return;
@@ -526,7 +559,26 @@ public class FigureBuilder {
         glVertexAttribPointer(shader.getNormalAttributeLocation(), NORMAL_COMPONENT_COUNT, GLES20.GL_FLOAT, false, 0, 0);
 
 
-        glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeDataHolder.getInstance().sizeInVertex * params.cubeNumber);
+        if(viewMode && animator!=null){
+
+            if (isScattered){
+
+                animator.drawOpenedFigure(shader);
+
+            }else{
+
+                animator.drawClosedFigure(shader);
+
+            }
+
+        }else{
+
+            float[] resetScatterVector = {0.0f, 0.0f, 0.0f};
+            shader.setScatter(resetScatterVector);
+            //animator.drawClosedFigure(shader);
+            glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeDataHolder.getInstance().sizeInVertex * params.cubeNumber);
+        }
+
 
     }
 

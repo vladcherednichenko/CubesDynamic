@@ -18,4 +18,80 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <CheckBox
+        android:id="@+id/antialiasing_checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="antialiasing"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/unlimited_grid_checkBox"
+        app:layout_constraintTop_toBottomOf="@+id/unlimited_grid_checkBox" />
+
+    <CheckBox
+        android:id="@+id/dynamic_shadows_checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_marginTop="16dp"
+        android:text="dynamic lighting"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/debug_textview_checkBox"
+        app:layout_constraintTop_toBottomOf="@+id/debug_textview_checkBox" />
+
+    <CheckBox
+        android:id="@+id/debug_textview_checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="debug textview"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/antialiasing_checkBox"
+        app:layout_constraintTop_toBottomOf="@+id/antialiasing_checkBox" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Graphics quality"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/dynamic_shadows_checkBox"
+        app:layout_constraintTop_toBottomOf="@+id/dynamic_shadows_checkBox" />
+
+    <TextView
+        android:id="@+id/txt_low"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:onClick="graphicQualityClicked"
+        android:text="Low"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@+id/textView2"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+    <TextView
+        android:id="@+id/txt_medium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:onClick="graphicQualityClicked"
+        android:text="Medium"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/txt_low"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+    <TextView
+        android:id="@+id/txt_high"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:onClick="graphicQualityClicked"
+        android:text="High"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/txt_medium"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+
 </android.support.constraint.ConstraintLayout>

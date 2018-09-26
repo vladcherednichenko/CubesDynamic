@@ -1,4 +1,4 @@
-package com.testing.vladyslav.cubes.programs;
+package com.testing.vladyslav.cubes.shaders;
 
 import android.content.Context;
 import android.opengl.Matrix;

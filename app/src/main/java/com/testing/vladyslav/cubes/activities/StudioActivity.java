@@ -16,12 +16,14 @@ import android.widget.Toast;
 
 import com.testing.vladyslav.cubes.CubeRenderer;
 import com.testing.vladyslav.cubes.R;
+import com.testing.vladyslav.cubes.Settings;
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
 import com.testing.vladyslav.cubes.fragments.EditorFragment;
 import com.testing.vladyslav.cubes.fragments.StudioFragment;
 import com.testing.vladyslav.cubes.presenters.StudioActivityPresenter;
+import com.testing.vladyslav.cubes.util.TextResourceReader;
 
 
 public class StudioActivity extends AppCompatActivity implements  StudioActivityPresenter.StudioActivityView {
@@ -54,15 +56,20 @@ public class StudioActivity extends AppCompatActivity implements  StudioActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_studio);
 
+        //check facetlist data loaded
+        if(CubeDataHolder.getInstance().facetListHigh == null) {
+            CubeDataHolder.getInstance().facetListLow = TextResourceReader.getFacetsFromFileObject(getApplicationContext(), "cube_simple.obj");
+            CubeDataHolder.getInstance().facetListMedium = TextResourceReader.getFacetsFromFileObject(getApplicationContext(), "cube_medium.obj");
+            CubeDataHolder.getInstance().facetListHigh = TextResourceReader.getFacetsFromFileObject(getApplicationContext(), "cube_detailed.obj");
+        }
+        CubeDataHolder.getInstance().setGraphicsQuality(Settings.graphicsQuality);
+
         fragmentManager = getSupportFragmentManager();
         studioFragment = new StudioFragment();
         editorFragment = new EditorFragment();
         fragmentFrame = findViewById(R.id.fragment_frame);
         progressBar = findViewById(R.id.progress_bar_editor);
         progressBar.setVisibility(View.INVISIBLE);
-
-        graphicsQuality = getIntent().getIntExtra("quality", 1);
-        CubeDataHolder.getInstance().setGraphicsQuality(graphicsQuality);
 
         UserModelsDBLoader modelsDBModel = new UserModelsDBLoader(getApplicationContext());
         presenter = new StudioActivityPresenter(modelsDBModel);

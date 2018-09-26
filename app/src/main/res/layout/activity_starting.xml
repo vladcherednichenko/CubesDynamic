@@ -19,26 +19,12 @@
         android:layout_alignParentStart="true"
         android:orientation="vertical">
 
-
         <Button
-            android:id="@+id/btnHigh"
+            android:id="@+id/btn_studio"
             android:layout_width="260dp"
             android:layout_height="50dp"
             android:layout_gravity="center"
-            android:text="high" />
-        <Button
-            android:id="@+id/btnMedium"
-            android:layout_width="260dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center"
-            android:text="medium" />
-
-        <Button
-            android:id="@+id/btnLow"
-            android:layout_width="260dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center"
-            android:text="low" />
+            android:text="Studio" />
         <Button
             android:id="@+id/btnSettings"
             android:layout_width="260dp"
@@ -57,7 +43,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="26dp"
 
-        android:text="Graphics Quality"
+        android:text="Start screen"
         android:textSize="40sp" />
 
 

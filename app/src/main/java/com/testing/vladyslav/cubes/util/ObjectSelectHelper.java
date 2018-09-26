@@ -32,7 +32,7 @@ public class ObjectSelectHelper {
         float cubeSize = 1f;
         float sphereRadius = cubeSize / 2 * (float)Math.sqrt(2);
 
-        Geometry.Ray ray = convertNormalized2DPointToRay((normalizedX ) * 10 / scaleFactor -strideX*screenRatio , (normalizedY ) * 10 / scaleFactor + strideY, invertedViewProjectionMatrix);
+        Geometry.Ray ray = convertNormalized2DPointToRay((normalizedX ) * 10 / scaleFactor -strideX/scaleFactor*screenRatio , (normalizedY ) * 10 / scaleFactor + strideY/scaleFactor, invertedViewProjectionMatrix);
 
         Iterator<PixioPoint> iterator = cubeCenters.iterator();
 

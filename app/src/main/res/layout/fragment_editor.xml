@@ -20,72 +20,88 @@
         android:layout_height="wrap_content"
         android:text=""
         android:textSize="30sp"/>
-    <ImageView
-        android:id="@+id/img_cancel"
-        android:layout_width="50dp"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="30dp"
-        app:srcCompat="@mipmap/ic_menu_left" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:orientation="horizontal"
+
+    <RelativeLayout
+        android:id="@+id/tools_row"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
         android:layout_marginBottom="40dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true">
+        android:layout_alignParentBottom="true">
+        <ImageView
+            android:id="@+id/img_cancel"
+            android:layout_width = "50dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            app:srcCompat="@mipmap/ic_menu_left" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:orientation="horizontal"
+            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true">
+
+            <ImageView
+                android:id="@+id/img_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="0dp"
+                app:srcCompat= "@mipmap/icon_add"
+                android:layout_weight="1"/>
+
+            <ImageView
+                android:id="@+id/img_change_color"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0dp"
+                android:layout_marginEnd="0dp"
+                app:srcCompat= "@mipmap/icon_change_color"
+                android:layout_weight="1"/>
+            <ImageView
+                android:id="@+id/img_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0dp"
+                android:layout_marginEnd="5dp"
+                app:srcCompat= "@mipmap/icon_delete"
+                android:layout_weight="1"/>
+
+
+        </LinearLayout>
+
 
         <ImageView
-            android:id="@+id/img_add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            app:srcCompat= "@mipmap/icon_add"
-            android:elevation="2dp"
-            android:translationZ="20dp"
-            android:layout_weight="1"/>
+            android:id="@+id/img_repeat"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            app:srcCompat="@mipmap/ic_menu_right" />
 
-        <ImageView
-            android:id="@+id/img_change_color"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            app:srcCompat= "@mipmap/icon_change_color"
-            android:layout_weight="1"/>
-        <ImageView
-            android:id="@+id/img_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            app:srcCompat= "@mipmap/icon_delete"
-            android:layout_weight="1"/>
-
-
-    </LinearLayout>
-
-
-    <ImageView
-        android:id="@+id/img_repeat"
-        android:layout_width="50dp"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="30dp"
-        app:srcCompat="@mipmap/ic_menu_right" />
+    </RelativeLayout>
 
 
     <com.testing.vladyslav.cubes.CustomRelativeLayout
         android:id="@+id/editor_colors_row"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="100dp"
         android:layout_alignParentBottom="true"
         android:gravity="bottom">
 
     </com.testing.vladyslav.cubes.CustomRelativeLayout>
+
+    <android.support.v7.widget.LinearLayoutCompat
+        android:id="@+id/figure_colors_row"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:paddingBottom="10dp"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+    </android.support.v7.widget.LinearLayoutCompat>
 
     <ImageView
         android:id="@+id/ic_menu_open"
@@ -126,7 +142,8 @@
                 android:id="@+id/txt_open"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+                android:paddingBottom="5dp"
+                android:fontFamily="@font/sfuidisplay_thin"
                 android:gravity="right"
                 android:text="Open"
                 android:textSize="20sp" />
@@ -135,8 +152,9 @@
                 android:id="@+id/txt_save"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:layout_marginTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp"
+                android:fontFamily="@font/sfuidisplay_thin"
                 android:gravity="right"
                 android:text="Save"
                 android:textSize="20sp" />
@@ -145,7 +163,8 @@
                 android:id="@+id/txt_save_as"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:paddingTop="5dp"
+                android:fontFamily="@font/sfuidisplay_thin"
                 android:gravity="right"
                 android:text="Save as"
                 android:textSize="20sp" />
@@ -154,7 +173,8 @@
                 android:id="@+id/txt_view_mode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:paddingTop="5dp"
+                android:fontFamily="@font/sfuidisplay_thin"
                 android:gravity="right"
                 android:text="View mode"
                 android:textSize="20sp" />

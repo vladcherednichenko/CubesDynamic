@@ -4,7 +4,8 @@ import android.opengl.GLES20;
 
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.objects.Cube;
-import com.testing.vladyslav.cubes.programs.ShaderProgram;
+import com.testing.vladyslav.cubes.shaders.ModelShader;
+import com.testing.vladyslav.cubes.shaders.StaticModelShader;
 
 import java.util.ArrayList;
 
@@ -41,7 +42,7 @@ public class Animator {
     }
 
 
-    public void drawOpenedFigure(ShaderProgram shader){
+    public void drawOpenedFigure(ModelShader shader){
 
         if(animationSqueezeIsRunning){
             drawClosedFigure(shader);
@@ -77,7 +78,7 @@ public class Animator {
         }
 
     };
-    public void drawClosedFigure(ShaderProgram shader){
+    public void drawClosedFigure(ModelShader shader){
 
         if (animationStretchIsRunning){
             drawOpenedFigure(shader);
@@ -94,7 +95,7 @@ public class Animator {
 
     };
 
-    public void animateStretch(ShaderProgram shader){
+    public void animateStretch(ModelShader shader){
 
         //don!t run the animation if the figure is stretched
         if (figureIsOpened) return;
@@ -152,7 +153,7 @@ public class Animator {
 
     }
 
-    public void animateSqueeze(ShaderProgram shader){
+    public void animateSqueeze(ModelShader shader){
 
         //don!t run the animation if the figure is stretched
         if (!figureIsOpened) return;

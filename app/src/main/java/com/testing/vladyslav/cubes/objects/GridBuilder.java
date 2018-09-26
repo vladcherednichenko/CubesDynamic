@@ -4,7 +4,7 @@ import android.opengl.GLES20;
 
 import com.testing.vladyslav.cubes.Settings;
 import com.testing.vladyslav.cubes.data.VertexArray;
-import com.testing.vladyslav.cubes.programs.GridShaderProgram;
+import com.testing.vladyslav.cubes.shaders.GridShaderProgram;
 import com.testing.vladyslav.cubes.util.PixioColor;
 
 import java.util.ArrayList;
