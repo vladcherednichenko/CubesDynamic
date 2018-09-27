@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.testing.vladyslav.cubes.R;
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.presenters.StudioActivityPresenter;
 import com.testing.vladyslav.cubes.util.ImageLoader;
 
 import java.util.ArrayList;
@@ -23,8 +24,8 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     public interface StudioRecyclerListener{
 
         void modelSelected(UserModel model);
+        void contextMenuCalled(UserModel model);
         Context getContext();
-        void onModelDelete(UserModel model);
 
     }
 
@@ -41,6 +42,8 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     public void setModels(ArrayList<UserModel> models){
         this.models = models;
     }
+
+    public ArrayList<UserModel> getModels(){return models;}
 
     private class StudioItemViewHolder extends RecyclerView.ViewHolder{
 
@@ -98,7 +101,7 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                 @Override
                 public void onClick(View view) {
 
-                    CubeDataHolder.getInstance().modelToLoad = pos*2;
+                    //CubeDataHolder.getInstance().modelToLoad = pos*2;
                     if (listener != null){
                         listener.modelSelected(modelLeft);
                     }
@@ -109,9 +112,10 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             itemHolder.leftModel_img.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-                    CubeDataHolder.getInstance().modelToLoad = pos*2;
-                    if (listener != null){
-                        listener.onModelDelete(modelLeft);
+                    //CubeDataHolder.getInstance().modelToLoad = pos*2;
+
+                    if(listener != null){
+                        listener.contextMenuCalled(modelLeft);
                     }
                     return true;
                 }
@@ -128,7 +132,7 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                 @Override
                 public void onClick(View view) {
 
-                    CubeDataHolder.getInstance().modelToLoad = pos*2+1;
+                    //CubeDataHolder.getInstance().modelToLoad = pos*2+1;
                     if (listener != null){
                         listener.modelSelected(modelRight);
                     }
@@ -139,10 +143,12 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             itemHolder.rightModel_img.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-                    CubeDataHolder.getInstance().modelToLoad = pos*2+1;
-                    if (listener != null){
-                        listener.onModelDelete(modelRight);
+                    //CubeDataHolder.getInstance().modelToLoad = pos*2+1;
+
+                    if(listener !=  null) {
+                        listener.contextMenuCalled(modelRight);
                     }
+
                     return true;
                 }
             });
@@ -169,6 +175,6 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         int count = models.size() % 2>0? models.size() /2+1 : models.size() /2;
 
-        return count;
+        return count ;
     }
 }

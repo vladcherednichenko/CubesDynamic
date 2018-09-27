@@ -35,6 +35,7 @@ public class FigureBuilder {
         private float [] modelDimensions = new float [dimensionNumber];
 
         private int maxModelSize = Settings.maximumModelSize;
+        private String name = "";
 
         private final int sizeX = 0;
         private final int sizeY = 1;
@@ -69,6 +70,7 @@ public class FigureBuilder {
         void setSizeX(int x){ modelDimensions[sizeX] = x;}
         void setSizeY(int y){ modelDimensions[sizeY] = y;}
         void setSizeZ(int z){ modelDimensions[sizeZ] = z;}
+        void setName(String name){this.name = name;}
 
 
         void clearFigureDimensions(){
@@ -144,6 +146,7 @@ public class FigureBuilder {
         public UserModel getModel(){
 
             UserModel model = new UserModel();
+            model.setName(name);
             model.setCubeNumber(cubeNumber);
             model.setSizeY(sizeY);
             model.setSizeX(sizeX);
@@ -285,6 +288,7 @@ public class FigureBuilder {
         params.setSizeX(model.getSizeX() == null? 0: model.getSizeX());
         params.setSizeY(model.getSizeY() == null? 0: model.getSizeY());
         params.setSizeZ(model.getSizeZ() == null? 0: model.getSizeZ());
+        params.setName(model.getName());
 
         params.cubeNumber = model.getCubeNumber() == null? 0: model.getCubeNumber();
 

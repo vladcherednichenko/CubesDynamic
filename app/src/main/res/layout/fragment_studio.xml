@@ -59,14 +59,9 @@
         />
 
 
-    <ImageView
-        android:id="@+id/back_presser"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_width="60sp"
-        android:layout_height="60sp">
-    </ImageView>
-
+    <include
+        layout="@layout/layout_icon_back_black"
+        android:id="@+id/back"/>
 
 
 </RelativeLayout>

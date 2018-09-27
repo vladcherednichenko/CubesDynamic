@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:background="#eeeeef"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/studio_context_open"
+        android:background="@color/colorWhite"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingStart="10dp"
+        android:layout_marginBottom="1dp"
+        android:gravity="center_vertical"
+        android:text="Open"
+        android:fontFamily="@font/sfuidisplay_thin"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/studio_context_rename"
+        android:background="@color/colorWhite"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="1dp"
+        android:paddingStart="10dp"
+        android:gravity="center_vertical"
+        android:text="Rename"
+        android:fontFamily="@font/sfuidisplay_thin"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/studio_context_delete"
+        android:background="@color/colorWhite"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingStart="10dp"
+        android:gravity="center_vertical"
+        android:text="Delete"
+        android:fontFamily="@font/sfuidisplay_thin"
+        android:textSize="20sp"/>
+
+
+</LinearLayout>
+

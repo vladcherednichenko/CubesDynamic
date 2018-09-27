@@ -3,6 +3,7 @@ package com.testing.vladyslav.cubes.fragments;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -14,7 +15,6 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -25,6 +25,7 @@ import com.testing.vladyslav.cubes.CustomRelativeLayout;
 import com.testing.vladyslav.cubes.PixioCube;
 import com.testing.vladyslav.cubes.R;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.dialogs.AskToSaveDialog;
 import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
 import com.testing.vladyslav.cubes.presenters.StudioActivityPresenter;
 
@@ -199,13 +200,15 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         txt_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                presenter.saveClicked();
+                presenter.saveClicked(null);
             }
         });
         txt_save_as.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openDialogBox();
+
+                presenter.saveAsClicked(null);
+
             }
         });
         txt_view_mode.setOnClickListener(new View.OnClickListener() {
@@ -244,6 +247,12 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         });
 
 
+        view.findViewById(R.id.back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.backButtonPressed();
+            }
+        });
 
 
         return view;
@@ -328,7 +337,14 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) image.getLayoutParams();
 
         //shadow
-        image.setElevation(elevation);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+
+            image.setElevation(elevation);
+
+
+        }else{
+            image.bringToFront();
+        }
 
         //size
         image.setTranslationY(params.height - params.height * scaleSize);
@@ -413,10 +429,20 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
             image.setPadding(0, 0, 0, 0);
 
-            image.setElevation(0f);
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+
+                image.setElevation(0f);
+
+            }else{
+                img_shadow_left.bringToFront();
+                img_shadow_right.bringToFront();
+            }
+
+
             image.setTranslationY(0f);
 
             image.setLayoutParams(params);
+
 
 
         }
@@ -490,19 +516,18 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
     }
 
-    public void openDialogBox(){
+    public void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback){
 
         EnterFigureNameDialog dialog = new EnterFigureNameDialog(EditorFragment.this.getActivity());
-        dialog.setListener(new EnterFigureNameDialog.FigureNameDialogListener() {
-            @Override
-            public void enterFigureNamePressed(String name) {
-
-                presenter.saveAsClicked(name);
-
-            }
-        });
+        dialog.setListener(callback);
         dialog.show();
 
+    }
+
+    public void openAskToSaveDialogBox(AskToSaveDialog.SaveChangesDialogListener callback){
+        AskToSaveDialog dialog = new AskToSaveDialog(EditorFragment.this.getActivity());
+        dialog.setListener(callback);
+        dialog.show();
     }
 
     @Override

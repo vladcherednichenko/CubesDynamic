@@ -12,6 +12,8 @@ public class FigureChangesManager {
     public static final int CAN_FORWARD = 2;
     public static final int CAN_FORWARD_BACKWARD = 3;
 
+    private boolean isSaved = true;
+
     public PixioPoint strideVector = new PixioPoint(0f, 0f, 0f);
 
     private int state;
@@ -24,6 +26,14 @@ public class FigureChangesManager {
     }
 
     private int currentCommandPointer = -1;
+
+    public boolean isSaved(){
+        return isSaved;
+    }
+
+    public void setIsSaved(boolean b){
+        isSaved = b;
+    }
 
     public interface ChangeCommitListener {
         void onChangeCommit();
@@ -78,75 +88,6 @@ public class FigureChangesManager {
         return currentCommandPointer >= 0;
     }
 
-//    public void newCommandAddCube(final PixioPoint cubeCenter, final int color){
-//
-//        clearForwards();
-//
-//        commandsHistory.add(new Command() {
-//            @Override
-//            public void execute() {
-//                cInterface.addCube(cubeCenter, color);
-//                commitChange();
-//            }
-//
-//            @Override
-//            public void undo() {
-//                cInterface.deleteCube(cubeCenter);
-//                commitChange();
-//            }
-//        });
-//
-//        updateCommandPointer();
-//        commandsHistory.get(currentCommandPointer).execute();
-//
-//    }
-//
-//    public void newCommandPaintCube(final PixioPoint cubeCenter, final int oldColor, final int newColor){
-//
-//        clearForwards();
-//
-//        commandsHistory.add(new Command() {
-//            @Override
-//            public void execute() {
-//                cInterface.paintCube(cubeCenter, newColor);
-//                commitChange();
-//            }
-//
-//            @Override
-//            public void undo() {
-//                cInterface.paintCube(cubeCenter, oldColor);
-//                commitChange();
-//            }
-//        });
-//
-//        updateCommandPointer();
-//        commandsHistory.get(currentCommandPointer).execute();
-//
-//    }
-//
-//    public void newCommandDeleteCube(final PixioPoint cubeCenter, final int color){
-//
-//        clearForwards();
-//
-//        commandsHistory.add(new Command() {
-//            @Override
-//            public void execute() {
-//                cInterface.deleteCube(cubeCenter);
-//                commitChange();
-//            }
-//
-//            @Override
-//            public void undo() {
-//                cInterface.addCube(cubeCenter, color);
-//                commitChange();
-//            }
-//        });
-//
-//        updateCommandPointer();
-//        commandsHistory.get(currentCommandPointer).execute();
-//
-//    }
-
     public void newCommandAddCube(final PixioPoint cubeCenter, final int color, final Geometry.Vector strideVector){
 
         clearForwards();
@@ -159,6 +100,7 @@ public class FigureChangesManager {
                     cInterface.strideFigure(strideVector);
                 }
                 commitChange();
+                isSaved = false;
             }
 
             @Override
@@ -168,6 +110,7 @@ public class FigureChangesManager {
                 }
                 cInterface.deleteCube(cubeCenter);
                 commitChange();
+                isSaved = false;
             }
         });
 
@@ -185,12 +128,14 @@ public class FigureChangesManager {
             public void execute() {
                 cInterface.paintCube(cubeCenter, newColor);
                 commitChange();
+                isSaved = false;
             }
 
             @Override
             public void undo() {
                 cInterface.paintCube(cubeCenter, oldColor);
                 commitChange();
+                isSaved = false;
             }
         });
 
@@ -211,6 +156,7 @@ public class FigureChangesManager {
                 }
                 cInterface.deleteCube(cubeCenter);
                 commitChange();
+                isSaved = false;
             }
 
             @Override
@@ -220,6 +166,7 @@ public class FigureChangesManager {
                 }
                 cInterface.addCube(cubeCenter, color);
                 commitChange();
+                isSaved = false;
             }
         });
 

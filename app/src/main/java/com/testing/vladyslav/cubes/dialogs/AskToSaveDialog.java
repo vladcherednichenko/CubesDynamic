@@ -11,27 +11,26 @@ import android.widget.EditText;
 
 import com.testing.vladyslav.cubes.R;
 
-public class EnterFigureNameDialog extends Dialog implements
+public class AskToSaveDialog extends Dialog implements
         View.OnClickListener{
 
 
         public Activity c;
         public Dialog d;
         private Button yes, no;
-        private EditText textField;
 
-        private FigureNameDialogListener listener;
+        private SaveChangesDialogListener listener;
 
-        public interface FigureNameDialogListener {
+        public interface SaveChangesDialogListener {
 
-            boolean enterFigureNamePressed(String name);
-            void cancelPressed();
+            void saveChangesClicked();
+            void doNotSaveChangesClicked();
 
         }
 
-        public void setListener(FigureNameDialogListener listener){this.listener = listener;}
+        public void setListener(SaveChangesDialogListener listener){this.listener = listener;}
 
-        public EnterFigureNameDialog(Activity a) {
+        public AskToSaveDialog(Activity a) {
             super(a);
             // TODO Auto-generated constructor stub
             this.c = a;
@@ -41,14 +40,13 @@ public class EnterFigureNameDialog extends Dialog implements
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             requestWindowFeature(Window.FEATURE_NO_TITLE);
-            setContentView(R.layout.dialog_enter_figure_name);
+            setContentView(R.layout.dialog_ask_to_save);
             yes = (Button) findViewById(R.id.btn_yes);
             no = (Button) findViewById(R.id.btn_no);
-            textField = findViewById(R.id.edit_pixiocode);
             yes.setOnClickListener(this);
             no.setOnClickListener(this);
 
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         }
 
@@ -59,20 +57,16 @@ public class EnterFigureNameDialog extends Dialog implements
 
 
                     if (listener != null) {
-                        if(listener.enterFigureNamePressed(textField.getText().toString())){
-                            dismiss();
-                        }
-
-                    }else{
-                        dismiss();
+                        listener.saveChangesClicked();
                     }
 
+                    dismiss();
                     break;
                 }
                 case R.id.btn_no:
 
-                    if (listener != null) {
-                        listener.cancelPressed();
+                    if(listener != null){
+                        listener.doNotSaveChangesClicked();
                     }
 
                     dismiss();
@@ -80,6 +74,7 @@ public class EnterFigureNameDialog extends Dialog implements
                 default:
                     break;
             }
+            dismiss();
 
         }
 

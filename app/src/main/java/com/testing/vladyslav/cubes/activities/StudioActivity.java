@@ -81,31 +81,37 @@ public class StudioActivity extends AppCompatActivity implements  StudioActivity
 
     }
 
-    public void loadFragment(int fragmentId){
+    public void loadFragment(int fragmentId, boolean isForward){
 
         switch (fragmentId){
             case EDITORFRAGMENTID:{
-                loadFragment(editorFragment);
+                loadFragment(editorFragment, isForward);
                 break;
             }
             case STUDIOFRAGMENTID:{
-                loadFragment(studioFragment);
+                loadFragment(studioFragment, isForward);
                 break;
             }
             default:{
-                loadFragment(studioFragment);
+                loadFragment(studioFragment, isForward);
                 break;
             }
         }
 
     }
 
-    private void loadFragment(Fragment fragment){
+    private void loadFragment(Fragment fragment, boolean isForward){
 
         if(fragmentManager!=null){
 
             FragmentTransaction transaction = fragmentManager.beginTransaction();
-//            transaction.setCustomAnimations(R.anim.fade_in, R.anim.menu_slide_out);
+
+            if(isForward){
+                transaction.setCustomAnimations(R.anim.slide_left_on_screen, R.anim.slide_left_off_screen);
+            }else{
+                transaction.setCustomAnimations(R.anim.slide_right_on_screen, R.anim.slide_right_off_screen);
+            }
+
             transaction.replace(R.id.fragment_frame, fragment, "no_tag");
             transaction.commit();
 
@@ -155,5 +161,27 @@ public class StudioActivity extends AppCompatActivity implements  StudioActivity
         if(progressBar!= null){
             progressBar.setVisibility(View.INVISIBLE);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if(presenter!= null){
+            presenter.backButtonPressed();
+        }
+
+    }
+
+    @Override
+    public void previousActivity() {
+
+        super.onBackPressed();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        presenter.activityPaused();
     }
 }

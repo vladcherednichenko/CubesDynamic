@@ -2,6 +2,7 @@ package com.testing.vladyslav.cubes.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class ImagesHelper {
 
         FileOutputStream out = null;
         try {
-            out = new FileOutputStream(context.getFilesDir() + File.separator + filename);
+            out = new FileOutputStream(getImagePath(context, filename));
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
             // PNG is a lossless format, the compression factor (100) is ignored
         } catch (Exception e) {
@@ -42,6 +43,25 @@ public class ImagesHelper {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+    }
+
+    public static String getImagePath(Context context, String fileName){
+
+        String fileDir = context.getFilesDir() + File.separator;
+
+        return fileDir + fileName;
+
+    }
+
+    public static void renameImage(String filename, String newFileName, Context context, SaveImageCallback callback){
+
+        File oldImage = new File(getImagePath(context, filename));
+        File newImage = new File(getImagePath(context, newFileName));
+
+        if(oldImage.renameTo(newImage) && callback!= null){
+            callback.onImageSaved();
         }
 
     }

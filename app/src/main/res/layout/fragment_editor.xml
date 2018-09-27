@@ -182,6 +182,10 @@
 
     </RelativeLayout>
 
+    <include
+        layout="@layout/layout_icon_back_black"
+        android:id="@+id/back"/>
+
     <TextView
         android:id="@+id/debugTextView"
         android:layout_width="match_parent"

@@ -315,6 +315,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         // view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
         Matrix.setLookAtM(viewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 
+        Matrix.translateM(modelMatrix, 0, 0f, 0f, 7.0f);
+
 
         gridShader = new GridShaderProgram(context);
 
@@ -384,7 +386,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         }
 
-        void calculateLightMatrices(){
+        void calculateLightMatrices(float xAngle, float yAngle){
 
             Matrix.setIdentityM(frontLightModelMatrix, 0);
             Matrix.translateM(frontLightModelMatrix, 0, 0.0f, 0.0f, -7.0f);
@@ -546,7 +548,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
             drawGrid();
 
-            calculateLightMatrices();
+            calculateLightMatrices(xAngle, yAngle);
 
             calculateMVPMatrix();
 
@@ -565,6 +567,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             //set user made stride
             Matrix.translateM(modelMatrix, 0, strideX/scaleFactor, -strideY/scaleFactor, 0.0f);
             //set user made rotation
+
             rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
         }
@@ -590,7 +593,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
             calculateModelMatrix();
 
-            calculateLightMatrices();
+            calculateLightMatrices(xAngle, yAngle);
 
             setUniforms();
 
@@ -626,7 +629,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
             calculateModelMatrix();
 
-            calculateLightMatrices();
+            calculateLightMatrices(screenshotXAngle, screenshotYAngle);
 
             setUniforms();
 

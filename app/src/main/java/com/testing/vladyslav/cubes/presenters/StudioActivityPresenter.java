@@ -12,6 +12,9 @@ import com.testing.vladyslav.cubes.adapters.StudioRecyclerAdapter;
 import com.testing.vladyslav.cubes.data.CubeDataHolder;
 import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.dialogs.AskToSaveDialog;
+import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
+import com.testing.vladyslav.cubes.dialogs.StudioContextDialog;
 import com.testing.vladyslav.cubes.fragments.EditorFragment;
 import com.testing.vladyslav.cubes.objects.userActionsManagement.FigureChangesManager;
 import com.testing.vladyslav.cubes.util.ImageLoader;
@@ -31,7 +34,6 @@ public class StudioActivityPresenter {
     private ArrayList<UserModel> usersModelsList;
     private UserModel currentUserModel;
     private final Object changesCommitLock;
-    private final Object changesCommitDoneLock;
 
     private StudioRecyclerAdapter modelListAdapter;
     private ChangeCommitWaitingTask changesCommitWaitTask;
@@ -39,24 +41,35 @@ public class StudioActivityPresenter {
     private volatile boolean imageSaved = false;
     private volatile boolean changeCommit = false;
 
+    private String FRAGMENT_STUDIO = "Studio";
+    private String FRAGMENT_EDITOR = "Editor";
+
+    private FragmentQueue fragmentQueue;
+
     private boolean viewMode = false;
 
 
     public interface StudioActivityView {
 
         Context getContext();
-        void loadFragment(int fragmentId);
+        void loadFragment(int fragmentId, boolean isForward);
         void startAnotherActivity(Class<?> cls);
         void showToast(String text);
         void showProgressBar();
         void hideProgressBar();
+        void previousActivity();
 
     }
 
     public interface StudioFragmentView{
 
         void attachModelListAdapter(StudioRecyclerAdapter adapter);
-        void setNewRecyclerViewData(ArrayList<UserModel> models);
+        void updateData(ArrayList<UserModel> models, UserModel updatedModel);
+        void changeData(ArrayList<UserModel> models);
+        void openContextMenu(StudioContextDialog.StudioContextDialogListener listener);
+        void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback);
+        void renameModel(UserModel userModel);
+        void deleteUserModel(UserModel userModel);
 
     }
 
@@ -64,7 +77,8 @@ public class StudioActivityPresenter {
 
         CubeRenderer getRenderer();
         void setModelToOpen(UserModel model);
-        void openDialogBox();
+        void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback);
+        void openAskToSaveDialogBox(AskToSaveDialog.SaveChangesDialogListener callback);
         void setBackwardButtonVisible(Boolean visible);
         void setForwardButtonVisible(Boolean visible);
         void setOnSurfaceViewCreatedListener(EditorFragment.OnSurfaceViewCreatedListener listener);
@@ -72,11 +86,13 @@ public class StudioActivityPresenter {
 
     }
 
-
-    public void setUserModelsList(ArrayList<UserModel> models){
-        this.usersModelsList = models;
+    public interface ActionAfterSave{
+        void onFigureSaved();
     }
 
+    public interface ActionAfterLoadingModels{
+        void onModelsLoaded();
+    }
 
     //here communicate with studioActivityView
     public void attachViews(StudioActivityView activityView, EditorFragmentView editorFragmentView, StudioFragmentView studioFragmentView){
@@ -85,7 +101,9 @@ public class StudioActivityPresenter {
         this.studioFragmentView = studioFragmentView;
         this.editorFragmentView = editorFragmentView;
 
-        activityView.loadFragment(StudioActivity.STUDIOFRAGMENTID);
+        activityView.loadFragment(StudioActivity.STUDIOFRAGMENTID, true);
+        fragmentQueue = new FragmentQueue();
+        fragmentQueue.addFragmentToQueue(FRAGMENT_STUDIO);
 
         //check facetlist data loaded
         if(CubeDataHolder.getInstance().facetListHigh == null) {
@@ -94,13 +112,13 @@ public class StudioActivityPresenter {
             CubeDataHolder.getInstance().facetListHigh = TextResourceReader.getFacetsFromFileObject(studioActivityView.getContext(), "cube_detailed.obj");
         }
 
+
     }
 
     //here do all the preparation work
     public StudioActivityPresenter(UserModelsDBLoader model){
 
         changesCommitLock = new Object();
-        changesCommitDoneLock = new Object();
         this.model = model;
         model.loadUserModels(new UserModelsDBLoader.LoadUserModelsCallback() {
             @Override
@@ -112,7 +130,12 @@ public class StudioActivityPresenter {
                     @Override
                     public void modelSelected(UserModel model) {
 
-                        openUserModel(model);
+                        openUserModel(model, true);
+                    }
+
+                    @Override
+                    public void contextMenuCalled(UserModel model) {
+                        studioContextMenuCalled(model);
                     }
 
                     @Override
@@ -120,10 +143,6 @@ public class StudioActivityPresenter {
                         return studioActivityView.getContext();
                     }
 
-                    @Override
-                    public void onModelDelete(UserModel model) {
-                        deleteUserModel(model);
-                    }
 
                 });
 
@@ -137,16 +156,164 @@ public class StudioActivityPresenter {
 
     }
 
-    private void saveUserModel(String name){
+    public void createNewModelClicked(){
+
+        currentUserModel = null;
+        openUserModel(null, true);
+
+    }
+
+    public void openClicked(){
+
+        if(figureIsSaved()){
+
+            openStudio(true);
+
+        }else{
+
+            editorFragmentView.openAskToSaveDialogBox(new AskToSaveDialog.SaveChangesDialogListener() {
+                @Override
+                public void saveChangesClicked() {
+
+                    saveClicked(new ActionAfterSave() {
+                        @Override
+                        public void onFigureSaved() {
+                            openStudio(true);
+                        }
+                    });
+
+                }
+
+                @Override
+                public void doNotSaveChangesClicked() {
+                    openStudio(true);
+                }
+            });
+
+        }
+
+    }
+
+    public void saveClicked(final ActionAfterSave callback){
+
+        updateCurrentUserModel();
+
+        //if model is just created
+        if(currentUserModel.getName() == null || currentUserModel.getName().equals("")){
+            saveAsClicked(callback);
+        }
+        //if model already exists
+        else if(figureExists(currentUserModel.getName())){
+            saveCurrentUserModel(callback);
+        }
+
+    }
+
+    public void saveAsClicked(final ActionAfterSave callback){
+
+        updateCurrentUserModel();
+
+        editorFragmentView.openEnterNameDialogBox(new EnterFigureNameDialog.FigureNameDialogListener() {
+            @Override
+            public boolean enterFigureNamePressed(String name) {
+
+                if(figureExists(name)){
+                    Toast.makeText(studioActivityView.getContext(), "Already exists", Toast.LENGTH_LONG).show();
+                    return false;
+                }else{
+                    saveUserModelAs(name, callback);
+                    return true;
+                }
+            }
+
+            @Override
+            public void cancelPressed() {
+
+            }
+        });
+
+    }
+
+    public void studioContextMenuCalled(final UserModel userModel){
+
+        studioFragmentView.openContextMenu(new StudioContextDialog.StudioContextDialogListener() {
+            @Override
+            public void onOpen() {
+
+                openUserModel(userModel, true);
+
+            }
+
+            @Override
+            public void onRename() {
+
+                renameUserModel(userModel);
+
+            }
+
+            @Override
+            public void onDelete() {
+
+                deleteUserModel(userModel);
+
+            }
+        });
+
+    }
+
+    public void openMenuClicked(){
+
+        clearChangeCommitThreads();
+
+    }
+
+    public void viewModeClicked(){
+
+        ArrayList<PixioCube> cubes = null;
+
+        viewMode = !viewMode;
+        editorFragmentView.getRenderer().setViewMode(viewMode);
+
+        if(viewMode){
+            cubes = PixioHelper.figureToCubeList(editorFragmentView.getRenderer().getCubes());
+
+        }
+
+        editorFragmentView.viewModeEnable(viewMode, cubes);
+
+
+    }
+
+    //if figure already exists
+    private void saveCurrentUserModel(ActionAfterSave callback){
+
+        if(currentUserModel == null){ return; }
 
         studioActivityView.showProgressBar();
 
-        UserModel renderingModel = editorFragmentView.getRenderer().getRenderingModel();
-        renderingModel.setName(name);
+        model.updateUserModel(currentUserModel, new UserModelsDBLoader.UpdateModelCallback() {
+            @Override
+            public void onUserModelUpdated() {
+                studioActivityView.showToast("Saved");
+            }
+        });
+
+        saveImage(currentUserModel.getName(), callback);
+        editorFragmentView.getRenderer().getFigureChangeManager().setIsSaved(true);
+
+    }
+
+    //if figure is just created
+    private void saveUserModelAs(String name, ActionAfterSave callback){
+
+        if(currentUserModel == null) return;
+        studioActivityView.showProgressBar();
+
+        currentUserModel.setId(null);
+        currentUserModel.setName(name);
 
         ArrayList<UserModel> models = new ArrayList<>();
-        models.add(renderingModel);
-
+        models.add(currentUserModel);
         model.insertUserModels(models, new UserModelsDBLoader.InsertUserModelsCallback() {
             @Override
             public void onUserModelsInsert() {
@@ -156,13 +323,41 @@ public class StudioActivityPresenter {
             }
         });
 
+        saveImage(currentUserModel.getName(), callback);
+        editorFragmentView.getRenderer().getFigureChangeManager().setIsSaved(true);
+
     }
 
-    private void openUserModel(UserModel model){
+    private void openStudio(boolean isForward){
+        viewMode = false;
+        studioActivityView.loadFragment(StudioActivity.STUDIOFRAGMENTID, isForward);
+        if(isForward){
+            fragmentQueue.addFragmentToQueue(FRAGMENT_STUDIO);
+        }else{
+            fragmentQueue.back();
+        }
 
+        studioFragmentView.attachModelListAdapter(modelListAdapter);
+
+        loadUserModels(new ActionAfterLoadingModels() {
+            @Override
+            public void onModelsLoaded() {
+                modelListAdapter.setModels(usersModelsList);
+                studioFragmentView.attachModelListAdapter(modelListAdapter);
+            }
+        });
+    }
+
+    //interface for studio
+    private void openUserModel(UserModel model, boolean isForward){
 
         editorFragmentView.setModelToOpen(model);
-        studioActivityView.loadFragment(StudioActivity.EDITORFRAGMENTID);
+        studioActivityView.loadFragment(StudioActivity.EDITORFRAGMENTID, isForward);
+        if(isForward){
+            fragmentQueue.addFragmentToQueue(FRAGMENT_EDITOR);
+        }else{
+            fragmentQueue.back();
+        }
         currentUserModel = model;
         editorFragmentView.setOnSurfaceViewCreatedListener(new EditorFragment.OnSurfaceViewCreatedListener() {
             @Override
@@ -197,9 +392,65 @@ public class StudioActivityPresenter {
             }
         });
 
+        viewMode = false;
+
+
     }
 
-    private void deleteUserModel(UserModel userModel){
+    //interface for studio
+    private void renameUserModel(final UserModel userModel){
+
+        studioFragmentView.openEnterNameDialogBox(new EnterFigureNameDialog.FigureNameDialogListener() {
+            @Override
+            public boolean enterFigureNamePressed(String name) {
+
+                if(figureExists(name)){
+                    Toast.makeText(studioActivityView.getContext(), "Already exists", Toast.LENGTH_LONG).show();
+                    return false;
+                }else{
+
+                    studioActivityView.showProgressBar();
+
+                    ImagesHelper.renameImage(userModel.getName(), name, studioActivityView.getContext(), null);
+
+                    userModel.setName(name);
+
+                    model.updateUserModel(userModel, new UserModelsDBLoader.UpdateModelCallback() {
+                        @Override
+                        public void onUserModelUpdated() {
+
+                            studioActivityView.showToast("Renamed");
+
+                        }
+                    });
+
+                    loadUserModels(new ActionAfterLoadingModels() {
+                        @Override
+                        public void onModelsLoaded() {
+
+                            studioFragmentView.renameModel(userModel);
+                            studioActivityView.hideProgressBar();
+
+                        }
+                    });
+
+
+                    return true;
+                }
+
+            }
+
+            @Override
+            public void cancelPressed() {
+
+            }
+        });
+
+
+    }
+
+    //interface for studio
+    private void deleteUserModel(final UserModel userModel){
         model.deleteUserModel(userModel, new UserModelsDBLoader.DeleteUserModelCallback() {
             @Override
             public void onUserModelsDeleted() {
@@ -208,90 +459,40 @@ public class StudioActivityPresenter {
                     public void onUserModelsLoad(ArrayList<UserModel> models) {
 
                         usersModelsList = models;
-                        studioFragmentView.setNewRecyclerViewData (models);
+                        studioFragmentView.deleteUserModel(userModel);
 
                     }
                 });
+
             }
         });
     }
 
-    public void createNewModelClicked(){
 
-        currentUserModel = null;
-        openUserModel(null);
+    private void loadUserModels(final ActionAfterLoadingModels callback){
 
-    }
-
-    public void openClicked(){
-
-        studioActivityView.loadFragment(StudioActivity.STUDIOFRAGMENTID);
         model.loadUserModels(new UserModelsDBLoader.LoadUserModelsCallback() {
             @Override
             public void onUserModelsLoad(ArrayList<UserModel> models) {
 
                 usersModelsList = models;
-                modelListAdapter.setModels(models);
-                studioFragmentView.attachModelListAdapter(modelListAdapter);
+                if(callback!= null){
+                    callback.onModelsLoaded();
+                }
 
             }
         });
 
     }
 
-    public void saveClicked(){
 
-        if (currentUserModel != null && figureExists(currentUserModel.getName())){
+    private void updateStudioScreen(UserModel updatedModel){
 
-            studioActivityView.showProgressBar();
-            ImageLoader.getInstance().setClearImageCache(true);
-            UserModel renderingModel = editorFragmentView.getRenderer().getRenderingModel();
-            renderingModel.setName(currentUserModel.getName());
-            renderingModel.setId(currentUserModel.getId());
-            model.updateUserModel(renderingModel, new UserModelsDBLoader.UpdateModelCallback() {
-                @Override
-                public void onUserModelUpdated() {
-                    studioActivityView.showToast("Saved");
-                }
-            });
-            saveImage(currentUserModel.getName());
-
+        if(updatedModel == null){
+            studioFragmentView.changeData(usersModelsList);
         }else{
-            editorFragmentView.openDialogBox();
+            studioFragmentView.updateData(usersModelsList, updatedModel);
         }
-    }
-
-    public void saveAsClicked(final String name){
-
-        final String imageName = name;
-
-        if(figureExists(name)) studioActivityView.showToast("This name already exists");
-
-        saveUserModel(name);
-        saveImage(name);
-
-    }
-
-    public void openMenuClicked(){
-
-        clearChangeCommitThreads();
-
-    }
-
-    public void viewModeClicked(){
-
-        ArrayList<PixioCube> cubes = null;
-
-        viewMode = !viewMode;
-        editorFragmentView.getRenderer().setViewMode(viewMode);
-
-        if(viewMode){
-            cubes = PixioHelper.figureToCubeList(editorFragmentView.getRenderer().getCubes());
-
-        }
-
-        editorFragmentView.viewModeEnable(viewMode, cubes);
-
 
     }
 
@@ -306,12 +507,30 @@ public class StudioActivityPresenter {
 
     }
 
-    private void saveImage(String name){
+    private boolean figureIsSaved(){return editorFragmentView.getRenderer().getFigureChangeManager().isSaved();}
 
-        final String imageName = name;
+    private void saveImage(String name, ActionAfterSave callback){
 
-        new ImageSaveWaitTask(imageName).execute(null, null, null);
+        ImageLoader.getInstance().setClearImageCache(true);
+        new ImageSaveWaitTask(name, callback).execute(null, null, null);
 
+    }
+
+    //synchronises currentUserModel with figureBuilder
+    private void updateCurrentUserModel(){
+
+        if(currentUserModel == null){
+            currentUserModel = editorFragmentView.getRenderer().getRenderingModel();
+        }else {
+
+            UserModel renderingModel = editorFragmentView.getRenderer().getRenderingModel();
+            if(renderingModel.getId() == null || !renderingModel.getId().equals(currentUserModel.getId())){
+                renderingModel.setId(currentUserModel.getId());
+                currentUserModel = renderingModel;
+            }else{
+                currentUserModel = editorFragmentView.getRenderer().getRenderingModel();
+            }
+        }
 
     }
 
@@ -347,6 +566,64 @@ public class StudioActivityPresenter {
 
     }
 
+    public void activityPaused(){
+
+
+
+    }
+
+    public void backButtonPressed(){
+
+        viewMode = false;
+        if(fragmentQueue != null){
+
+            if(fragmentQueue.currentFragment.previous == null){
+                studioActivityView.previousActivity();
+            }else{
+
+
+                //if current screen is editor
+                if(fragmentQueue.currentFragment.tag.equals(FRAGMENT_EDITOR)){
+
+                    if(!figureIsSaved()){
+                        editorFragmentView.openAskToSaveDialogBox(new AskToSaveDialog.SaveChangesDialogListener() {
+                            @Override
+                            public void saveChangesClicked() {
+                                saveClicked(new ActionAfterSave() {
+                                    @Override
+                                    public void onFigureSaved() {
+                                        openStudio(false);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void doNotSaveChangesClicked() {
+
+                                openStudio(false);
+
+                            }
+                        });
+                    }else{
+                        openStudio(false);
+                    }
+
+
+                }
+                //if current screen is studio
+                else if(fragmentQueue.currentFragment.tag.equals(FRAGMENT_STUDIO)){
+                    openUserModel(currentUserModel, false);
+                }
+
+            }
+
+
+        }else{
+            studioActivityView.previousActivity();
+        }
+
+
+    }
 
     class ChangeCommitWaitingTask extends AsyncTask<Void, Void, Void> {
 
@@ -386,9 +663,11 @@ public class StudioActivityPresenter {
     class ImageSaveWaitTask extends AsyncTask<Void, Void, Void>{
 
         private String imageName;
+        private ActionAfterSave callback;
 
-        public ImageSaveWaitTask(String name){
+        public ImageSaveWaitTask(String name, ActionAfterSave callback){
             this.imageName = name;
+            this.callback = callback;
         }
 
         @Override
@@ -426,6 +705,7 @@ public class StudioActivityPresenter {
                     }
 
                 }
+
                 imageSaved = false;
             }
 
@@ -438,6 +718,9 @@ public class StudioActivityPresenter {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             studioActivityView.hideProgressBar();
+            if(callback != null){
+                callback.onFigureSaved();
+            }
         }
     }
 
@@ -459,6 +742,46 @@ public class StudioActivityPresenter {
         }
 
     }
+
+    private class FragmentQueue{
+
+        private FragmentScreen currentFragment = null;
+
+        void back(){
+
+            if(currentFragment != null) { currentFragment = currentFragment.previous;}
+
+        }
+        void addFragmentToQueue(String tag){
+
+            if(currentFragment == null){
+                currentFragment = new FragmentScreen(tag, null);
+            }else if(currentFragment.tag.equals(tag)){
+                return;
+            }else if(currentFragment.previous != null && currentFragment.previous.tag.equals(FRAGMENT_EDITOR)){
+                back();
+            }else{
+                currentFragment = new FragmentScreen(tag, currentFragment);
+            }
+
+        }
+
+    }
+
+    private class FragmentScreen{
+
+        String tag;
+        FragmentScreen previous;
+
+        FragmentScreen(String tag, FragmentScreen previous){
+            this.tag = tag;
+            this.previous = previous;
+        }
+
+
+    }
+
+
 
 
 

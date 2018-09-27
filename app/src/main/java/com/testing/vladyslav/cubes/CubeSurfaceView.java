@@ -253,8 +253,12 @@ public class CubeSurfaceView extends GLSurfaceView{
                     float dy = y - mPreviousY;
 
 
+
                     renderer.setXAngle(renderer.getXAngle() + dx * TOUCH_SCALE_FACTOR);
                     renderer.setYAngle(renderer.getYAngle() + dy * TOUCH_SCALE_FACTOR);
+
+//                    renderer.setXAngle(dx * TOUCH_SCALE_FACTOR);
+//                    renderer.setYAngle(dy * TOUCH_SCALE_FACTOR);
 
                     mPreviousX = x;
                     mPreviousY = y;
