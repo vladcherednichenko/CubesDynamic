@@ -185,15 +185,17 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         shouldEditCubeColor = false;
         shouldDeleteCube = false;
 
-        centerFigureOnScreen();
-
         builder.setViewMode(viewMode);
 
         if(viewMode){
             shouldBindAttributesData = true;
             currentState = new ViewState(currentState);
         }else{
+
+            shouldBindAttributesData = true;
             currentState.returnPreviousState();
+            //centerFigureOnScreen();
+
         }
     }
 
@@ -546,6 +548,12 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
                 shouldForward = false;
             }
 
+            if(shouldBindAttributesData){
+                builder.build();
+                builder.bindAttributesData();
+                shouldBindAttributesData = false;
+            }
+
             if(shouldLoadNewModel){
                 builder.setModel(renderingModel);
                 //fit figure on screen
@@ -580,6 +588,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
         @Override
         protected void calculateModelMatrix() {
+
+            centerFigureOnScreen();
 
             super.calculateModelMatrix();
             //set user made stride
@@ -628,8 +638,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         protected void calculateModelMatrix() {
 
             super.calculateModelMatrix();
-
-            centerFigureOnScreen();
 
             Matrix.translateM(modelMatrix, 0, strideX/scaleFactor, -strideY/scaleFactor, 0.0f);
 

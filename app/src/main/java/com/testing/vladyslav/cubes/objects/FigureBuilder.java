@@ -532,14 +532,21 @@ public class FigureBuilder {
         viewMode = b;
         if(viewMode){
             Collections.sort(cubes);
+
+            strideFigure(new Geometry.Vector(0f, - params.getYSize()/2, 0f));
+
             animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
         }else{
+
+            strideFigure(new Geometry.Vector(0f, params.getYSize()/2, 0f));
+
+            animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
+
             isScattered = false;
+
         }
 
     }
-
-
 
     public void draw(ModelShader shader){
 
