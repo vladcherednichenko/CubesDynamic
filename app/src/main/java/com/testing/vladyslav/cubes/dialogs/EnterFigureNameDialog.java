@@ -11,6 +11,8 @@ import android.widget.EditText;
 
 import com.testing.vladyslav.cubes.R;
 
+import java.util.Objects;
+
 public class EnterFigureNameDialog extends Dialog implements
         View.OnClickListener{
 
@@ -19,6 +21,7 @@ public class EnterFigureNameDialog extends Dialog implements
         public Dialog d;
         private Button yes, no;
         private EditText textField;
+        private String defText;
 
         private FigureNameDialogListener listener;
 
@@ -29,10 +32,13 @@ public class EnterFigureNameDialog extends Dialog implements
 
         }
 
+
+
         public void setListener(FigureNameDialogListener listener){this.listener = listener;}
 
-        public EnterFigureNameDialog(Activity a) {
+        public EnterFigureNameDialog(Activity a, String defaultText) {
             super(a);
+            this.defText = defaultText;
             // TODO Auto-generated constructor stub
             this.c = a;
         }
@@ -48,7 +54,16 @@ public class EnterFigureNameDialog extends Dialog implements
             yes.setOnClickListener(this);
             no.setOnClickListener(this);
 
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
+            //set default defText
+            if(defText != null && !defText.equals("")){
+                textField.setText(defText);
+                textField.setSelection(textField.getText().length());
+            }
+
+
+            //open keyboard
+            Objects.requireNonNull(getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         }
 

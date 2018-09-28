@@ -22,6 +22,7 @@ import com.testing.vladyslav.cubes.R;
 import com.testing.vladyslav.cubes.adapters.StudioRecyclerAdapter;
 import com.testing.vladyslav.cubes.database.UserModelsDBLoader;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
+import com.testing.vladyslav.cubes.dialogs.AskToDeleteDialog;
 import com.testing.vladyslav.cubes.dialogs.AskToSaveDialog;
 import com.testing.vladyslav.cubes.dialogs.EnterFigureNameDialog;
 import com.testing.vladyslav.cubes.dialogs.StudioContextDialog;
@@ -137,18 +138,27 @@ public class StudioFragment extends Fragment implements StudioActivityPresenter.
     }
 
     @Override
-    public void openContextMenu(StudioContextDialog.StudioContextDialogListener listener) {
+    public void openContextMenu(StudioContextDialog.StudioContextDialogListener callback) {
 
         StudioContextDialog dialog = new StudioContextDialog(getActivity());
-        dialog.setListener(listener);
+        dialog.setListener(callback);
         dialog.show();
 
     }
 
     @Override
-    public void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback){
+    public void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback, String defText){
 
-        EnterFigureNameDialog dialog = new EnterFigureNameDialog(getActivity());
+        EnterFigureNameDialog dialog = new EnterFigureNameDialog(getActivity(), defText);
+        dialog.setListener(callback);
+        dialog.show();
+
+    }
+
+    @Override
+    public void openAskToDeleteDialog(AskToDeleteDialog.AscToDeleteDialogListener callback){
+
+        AskToDeleteDialog dialog = new AskToDeleteDialog(getActivity());
         dialog.setListener(callback);
         dialog.show();
 

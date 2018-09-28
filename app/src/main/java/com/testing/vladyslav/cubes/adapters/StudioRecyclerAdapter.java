@@ -63,14 +63,39 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             rightModel_img = itemView.findViewById(R.id.img_model_right);
 
 
-        }
-
-        public void hideRightFigure(){
+            leftModel_img.setVisibility(View.INVISIBLE);
+            leftModelName_txt.setVisibility(View.INVISIBLE);
 
             rightModel_img.setVisibility(View.INVISIBLE);
             rightModelName_txt.setVisibility(View.INVISIBLE);
 
         }
+
+        public void showRightFigure(){
+
+            rightModel_img.setVisibility(View.VISIBLE);
+            rightModelName_txt.setVisibility(View.VISIBLE);
+
+        }
+
+        public void hideRightFigure(){
+            rightModel_img.setVisibility(View.INVISIBLE);
+            rightModelName_txt.setVisibility(View.INVISIBLE);
+        }
+
+        public void showLeftFigure(){
+
+            leftModel_img.setVisibility(View.VISIBLE);
+            leftModelName_txt.setVisibility(View.VISIBLE);
+
+
+        }
+
+        public void hideLeftFigure(){
+            leftModel_img.setVisibility(View.INVISIBLE);
+            leftModelName_txt.setVisibility(View.INVISIBLE);
+        }
+
 
 
     }
@@ -123,7 +148,11 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
             ImageLoader.getInstance().loadImageIntoImageView(listener.getContext(), modelLeft.getName(), itemHolder.leftModel_img);
 
+            itemHolder.showLeftFigure();
 
+
+        }else{
+            itemHolder.hideLeftFigure();
         }
 
         if(modelRight!=null){
@@ -155,6 +184,7 @@ public class StudioRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
             ImageLoader.getInstance().loadImageIntoImageView(listener.getContext(), modelRight.getName(), itemHolder.rightModel_img);
 
+            itemHolder.showRightFigure();
 
         }else{
             itemHolder.hideRightFigure();

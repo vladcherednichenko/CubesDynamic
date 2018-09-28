@@ -310,13 +310,20 @@ public class CubeSurfaceView extends GLSurfaceView{
     private class PinchListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            scaleFactor *= detector.getScaleFactor();
+//            scaleFactor *= detector.getScaleFactor();
+//
+//
+//            // Don't let the object get too small or too large.
+//            scaleFactor = Math.max(Settings.minimumFigureScale, Math.min(scaleFactor, Settings.maximumFigureScale));
+//
+//            renderer.setScaleFactor(scaleFactor);
 
-
-            // Don't let the object get too small or too large.
-            scaleFactor = Math.max(Settings.minimumFigureScale, Math.min(scaleFactor, Settings.maximumFigureScale));
-
-            renderer.setScaleFactor(scaleFactor);
+            renderer.setScaleFactor(
+                    Math.max(
+                            Settings.minimumFigureScale,
+                            Math.min(
+                                    renderer.getScaleFactor()* detector.getScaleFactor(),
+                                    Settings.maximumFigureScale)));
 
             twoPointersDetected = true;
 

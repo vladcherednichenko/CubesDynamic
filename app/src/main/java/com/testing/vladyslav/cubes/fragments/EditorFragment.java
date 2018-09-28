@@ -516,9 +516,9 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
     }
 
-    public void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback){
+    public void openEnterNameDialogBox(EnterFigureNameDialog.FigureNameDialogListener callback, String defText){
 
-        EnterFigureNameDialog dialog = new EnterFigureNameDialog(EditorFragment.this.getActivity());
+        EnterFigureNameDialog dialog = new EnterFigureNameDialog(EditorFragment.this.getActivity(), defText);
         dialog.setListener(callback);
         dialog.show();
 

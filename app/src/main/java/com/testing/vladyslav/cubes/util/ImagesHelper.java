@@ -15,6 +15,8 @@ import static android.content.ContentValues.TAG;
 
 public class ImagesHelper {
 
+    private static String tag = "Image helper";
+
     public interface SaveImageCallback{
 
         void onImageSaved();
@@ -38,20 +40,14 @@ public class ImagesHelper {
                     out.close();
                     if(callback!=null){
                         callback.onImageSaved();
+                        Log.d(tag, "saved to: " + getImagePath(context, filename));
+
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-    }
-
-    public static String getImagePath(Context context, String fileName){
-
-        String fileDir = context.getFilesDir() + File.separator;
-
-        return fileDir + fileName;
 
     }
 
@@ -66,17 +62,33 @@ public class ImagesHelper {
 
     }
 
-    static boolean deleteImage(String filename, Context context){
+    public static boolean deleteImage(String filename, Context context){
 
-        File file = new File(context.getFilesDir() + File.separator + filename);
+        File file = new File(getImagePath(context, filename));
         if(file.exists()){
-            return file.delete();
+
+            if(file.delete()){
+                Log.d(tag, "File deleted: " + file.toString());
+            }else{
+                Log.d(tag, "File not ddeleted: " + file.toString());
+            }
+
         }
 
         context.deleteFile(filename);
 
         return false;
     }
+
+    private static String getImagePath(Context context, String fileName){
+
+        String fileDir = context.getFilesDir() + File.separator;
+
+        return fileDir + fileName;
+
+    }
+
+
 
 
 }

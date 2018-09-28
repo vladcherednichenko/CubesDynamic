@@ -47,6 +47,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private float strideX = 0f;
     private float strideY = 0f;
 
+
+
     private float screenshotXAngle = -45f;
     private float screenshotYAngle = 10f;
 
@@ -183,6 +185,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         shouldEditCubeColor = false;
         shouldDeleteCube = false;
 
+        centerFigureOnScreen();
+
         builder.setViewMode(viewMode);
 
         if(viewMode){
@@ -205,7 +209,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     public void setColor(int colorIndex){this.currentColorIndex = colorIndex;}
 
-    public void setStride(float strideX, float strideY){ this.strideX = strideX; this.strideY = strideY; }
+    public void setStride(float strideX, float strideY){ if(viewMode) return; this.strideX = strideX; this.strideY = strideY; }
     public void setXAngle(float xAngle) { this.xAngle = xAngle; }
     public void setYAngle(float yAngle) { this.yAngle = yAngle; }
 
@@ -279,6 +283,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         this.renderingModel = model;
         shouldLoadNewModel = true;
 
+
     }
 
     @Override
@@ -327,6 +332,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         cubeShader = Settings.dynamicShadows? new DynamicModelShader(context): new StaticModelShader(context);
 
         builder.build();
+
 
         gridBuilder.bindAttributesData();
         builder.bindAttributesData();
@@ -503,6 +509,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     private class EditingState extends RendererState{
 
+
         @Override
         public void draw() {
 
@@ -541,6 +548,17 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
             if(shouldLoadNewModel){
                 builder.setModel(renderingModel);
+                //fit figure on screen
+                float figureSize = builder.getFigureParams().getFigureMaxXYZDimen();
+
+                if(figureSize>8){
+                    scaleFactor = 8/figureSize;
+                    cubeShader.setScaleFactor(scaleFactor);
+
+                }
+
+                centerFigureOnScreen();
+
                 shouldLoadNewModel = false;
             }
 
@@ -571,6 +589,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
         }
+
+
 
     }
 
@@ -608,11 +628,24 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         protected void calculateModelMatrix() {
 
             super.calculateModelMatrix();
+
+            centerFigureOnScreen();
+
+            Matrix.translateM(modelMatrix, 0, strideX/scaleFactor, -strideY/scaleFactor, 0.0f);
+
             //set user made rotation
             rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
         }
 
+
+    }
+
+    private void centerFigureOnScreen(){
+
+        PixioPoint figureCenter = builder.getFigureParams().getFigureCenter();
+        strideX = -figureCenter.x * scaleFactor;
+        strideY = figureCenter.y * scaleFactor;
 
     }
 
