@@ -20,7 +20,9 @@ public class Settings {
     public static String editorBackGroundColor = "#eeeeef";
     //grid
     public static String gridColor = "#828282";
+    public static String highlightedGridColor = "#42f468";
     public static boolean unlimitedGrid = false;
+    public static boolean highLightedCentralLines = false;
     public static int unlimitedGridSize = 1000;
     public static float gridHeight = -1.5f;
     public static int minimumGridSize = 10;

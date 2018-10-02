@@ -28,6 +28,7 @@ public class SettingsActivity extends AppCompatActivity {
         CheckBox dynamicShadows;
         CheckBox antialiasing;
         CheckBox debugTextView;
+        CheckBox highLightGridCenterCheckBox;
 
         unlimitedGridBox = findViewById(R.id.unlimited_grid_checkBox);
         unlimitedGridBox.setChecked(Settings.unlimitedGrid);
@@ -54,6 +55,15 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 Settings.antialiasing = b;
+            }
+        });
+
+        highLightGridCenterCheckBox = findViewById(R.id.highlight_gridCenter_checkBox);
+        highLightGridCenterCheckBox.setChecked(Settings.highLightedCentralLines);
+        highLightGridCenterCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                Settings.highLightedCentralLines = b;
             }
         });
 

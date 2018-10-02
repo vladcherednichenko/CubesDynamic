@@ -31,7 +31,7 @@ public class FigureBuilder {
 
     public class FigureParameters{
 
-        private final int dimensionNumber = 13;
+        private final int dimensionNumber = 15;
         private float [] modelDimensions = new float [dimensionNumber];
 
         private int maxModelSize = Settings.maximumModelSize;
@@ -56,6 +56,9 @@ public class FigureBuilder {
         private final int boundMinZ = 11;
         private final int boundMaxZ = 12;
 
+        private final int boundMinY = 13;
+        private final int boundMaxY = 14;
+
         int cubeNumber = 0;
 
         FigureParameters(){
@@ -65,6 +68,9 @@ public class FigureBuilder {
             modelDimensions[boundMaxX] = Settings.maximumGridSize / 2;
             modelDimensions[boundMinZ] = - Settings.maximumGridSize / 2;
             modelDimensions[boundMaxZ] = Settings.maximumGridSize / 2;
+
+            modelDimensions[boundMinY] = Settings.gridHeight + cubeSize /2;
+            modelDimensions[boundMaxY] = modelDimensions[boundMinY] + Settings.maximumModelSize;
         }
 
         void setSizeX(int x){ modelDimensions[sizeX] = x;}
@@ -96,7 +102,7 @@ public class FigureBuilder {
 
         public float getFigureMaxXYZDimen(){
 
-            return Math.max(gridBuilder.gridSize, maxY - minY);
+            return Math.max(gridBuilder.getMaxGridXYSize(), modelDimensions[maxY] - modelDimensions[minY]);
 
         }
 
@@ -115,16 +121,16 @@ public class FigureBuilder {
             float strideY = 0f;
             float strideZ = 0f;
 
-            if(center.x == modelDimensions[boundMinX] + Settings.cubeSize/2 && modelDimensions[sizeX] < Settings.maximumGridSize-1){
+            if(center.x <= modelDimensions[boundMinX]){
                 strideX = 1f;
             }
-            if(center.x == modelDimensions[boundMaxX] - Settings.cubeSize/2 && modelDimensions[sizeX] < Settings.maximumGridSize-1){
+            if(center.x >= modelDimensions[boundMaxX]){
                 strideX = -1f;
             }
-            if(center.z == modelDimensions[boundMinZ] + Settings.cubeSize/2 && modelDimensions[sizeZ] < Settings.maximumGridSize-1){
+            if(center.z <= modelDimensions[boundMinZ]){
                 strideZ = 1f;
             }
-            if(center.z == modelDimensions[boundMaxZ] - Settings.cubeSize/2 && modelDimensions[sizeZ] < Settings.maximumGridSize-1){
+            if(center.z >= modelDimensions[boundMaxZ]){
                 strideZ = -1f;
             }
 
@@ -133,6 +139,43 @@ public class FigureBuilder {
             }else{
                 return new Geometry.Vector(strideX, strideY, strideZ);
             }
+
+        }
+
+        boolean canStrideFigure(PixioPoint center){
+
+            if(center.x > modelDimensions[boundMaxX]){
+                if(modelDimensions[minX] <= modelDimensions[boundMinX] ){
+                    return false;
+                }
+            }
+            if(center.x < modelDimensions[boundMinX]){
+
+                if(modelDimensions[maxX] >= modelDimensions[boundMaxX] ){
+                    return false;
+                }
+
+            }
+            if(center.z > modelDimensions[boundMaxZ]){
+
+                if(modelDimensions[minZ] <= modelDimensions[boundMinZ] ){
+                    return false;
+                }
+
+            }
+            if(center.z < modelDimensions[boundMinZ]){
+
+                if(modelDimensions[maxZ] >= modelDimensions[boundMaxZ] ){
+                    return false;
+                }
+
+            }
+            if(center.y > modelDimensions[maxY]){
+                return false;
+            }
+
+            return true;
+
 
         }
 
@@ -145,6 +188,12 @@ public class FigureBuilder {
 
         public UserModel getModel(){
 
+            boolean shouldReturnViewMode = viewMode;
+
+            if(viewMode){
+                setViewMode(false);
+            }
+
             UserModel model = new UserModel();
             model.setName(name);
             model.setCubeNumber(cubeNumber);
@@ -153,7 +202,12 @@ public class FigureBuilder {
             model.setSizeZ(sizeZ);
             model.setCubes(UserModelHelper.getStringModelForm(cubes));
 
+            if(shouldReturnViewMode){
+                setViewMode(true);
+            }
+
             return model;
+
 
         }
 
@@ -312,10 +366,16 @@ public class FigureBuilder {
         if(center == null) return;
         if(cubeExists(center)) return;
         if(!Settings.unlimitedGrid){
-            if(params.cubeOutOfBounds(center)) return;
-            if(params.cubeOnTheBound(center)){
+
+            if(params.cubeOutOfBounds(center)) {
+
+                if(!params.canStrideFigure(center)) return;
+
                 strideVector = params.countStride(center);
+
+
             }
+
         }
 
         changesManager.newCommandAddCube(center, colorIndex, strideVector);
@@ -364,7 +424,10 @@ public class FigureBuilder {
 
     private void build(ArrayList<Cube> cubes){
 
-        if(params.cubeNumber<=0) return;
+        if(params.cubeNumber<=0) {
+            if(gridBuilder!= null) gridBuilder.setGridSize(0,0,0,0);
+            return;
+        }
 
         vertexColorDataOffset = 0;
         vertexDataOffset = 0;
@@ -386,7 +449,13 @@ public class FigureBuilder {
 
         }
 
-        gridBuilder.setGridSize(Math.round(params.getFigureMaxXZDimen()+1) *2);
+        gridBuilder.setGridSize(
+                params.modelDimensions[params.minX],
+                params.modelDimensions[params.maxX],
+                params.modelDimensions[params.minZ],
+                params.modelDimensions[params.maxZ]
+        );
+        //gridBuilder.setGridSize(Math.round(params.getFigureMaxXZDimen()+1) *2);
 
         vertexPosArray = new VertexArray(vertexPositionData);
         vertexColorArray = new VertexArray(vertexColorData);
@@ -529,20 +598,25 @@ public class FigureBuilder {
     }
 
     public void setViewMode(boolean b){
-        viewMode = b;
-        if(viewMode){
-            Collections.sort(cubes);
 
-            strideFigure(new Geometry.Vector(0f, - params.getYSize()/2, 0f));
+        if(this.viewMode != b){
 
-            animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
-        }else{
+            viewMode = b;
+            if(viewMode){
+                Collections.sort(cubes);
 
-            strideFigure(new Geometry.Vector(0f, params.getYSize()/2, 0f));
+                strideFigure(new Geometry.Vector(0f, - params.getYSize()/2, 0f));
 
-            animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
+                animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
+            }else{
 
-            isScattered = false;
+                strideFigure(new Geometry.Vector(0f, params.getYSize()/2, 0f));
+
+                animator = new Animator(params.cubeNumber, Math.round(params.getYSize()), cubes);
+
+                isScattered = false;
+
+            }
 
         }
 
@@ -588,6 +662,7 @@ public class FigureBuilder {
             shader.setScatter(resetScatterVector);
             //animator.drawClosedFigure(shader);
             glDrawArrays(GLES20.GL_TRIANGLES, 0, CubeDataHolder.getInstance().sizeInVertex * params.cubeNumber);
+
         }
 
 

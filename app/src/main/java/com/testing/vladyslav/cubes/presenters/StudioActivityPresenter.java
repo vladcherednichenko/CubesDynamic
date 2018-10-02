@@ -280,6 +280,7 @@ public class StudioActivityPresenter {
         editorFragmentView.getRenderer().setViewMode(viewMode);
 
         if(viewMode){
+
             cubes = PixioHelper.figureToCubeList(editorFragmentView.getRenderer().getCubes());
 
         }

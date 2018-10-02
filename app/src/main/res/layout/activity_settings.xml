@@ -48,15 +48,25 @@
         app:layout_constraintStart_toStartOf="@+id/antialiasing_checkBox"
         app:layout_constraintTop_toBottomOf="@+id/antialiasing_checkBox" />
 
-    <TextView
-        android:id="@+id/textView2"
+    <CheckBox
+        android:id="@+id/highlight_gridCenter_checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:text="hightlight grid center"
+        android:textSize="25sp"
+        app:layout_constraintStart_toStartOf="@+id/antialiasing_checkBox"
+        app:layout_constraintTop_toBottomOf="@+id/dynamic_shadows_checkBox" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="37dp"
+        android:layout_marginTop="20dp"
         android:text="Graphics quality"
         android:textSize="25sp"
         app:layout_constraintStart_toStartOf="@+id/dynamic_shadows_checkBox"
-        app:layout_constraintTop_toBottomOf="@+id/dynamic_shadows_checkBox" />
+        app:layout_constraintTop_toBottomOf="@+id/highlight_gridCenter_checkBox" />
 
     <TextView
         android:id="@+id/txt_low"

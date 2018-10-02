@@ -47,8 +47,6 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private float strideX = 0f;
     private float strideY = 0f;
 
-
-
     private float screenshotXAngle = -45f;
     private float screenshotYAngle = 10f;
 
@@ -133,6 +131,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
     private int width;
     private int height;
 
+    private float cameraStride = 0f;
+
     private RendererState currentState;
     private ScreenshotHandler screenshotHandler;
     private ChangesRequestedListener changesRequestedListener;
@@ -188,13 +188,21 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         builder.setViewMode(viewMode);
 
         if(viewMode){
+            centerFigureOnScreen();
             shouldBindAttributesData = true;
+
+            cameraStride = strideY / scaleFactor;
+            Matrix.translateM(viewMatrix, 0, 0f, -cameraStride, 0.0f);
+
             currentState = new ViewState(currentState);
+
         }else{
+
+            Matrix.translateM(viewMatrix, 0, 0f, cameraStride, 0.0f);
 
             shouldBindAttributesData = true;
             currentState.returnPreviousState();
-            //centerFigureOnScreen();
+            centerFigureOnScreen();
 
         }
     }
@@ -213,7 +221,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
     public void setStride(float strideX, float strideY){ if(viewMode) return; this.strideX = strideX; this.strideY = strideY; }
     public void setXAngle(float xAngle) { this.xAngle = xAngle; }
-    public void setYAngle(float yAngle) { this.yAngle = yAngle; }
+    public void setYAngle(float yAngle) { this.yAngle = yAngle > 360? yAngle - 360: yAngle; }
 
     public float getStrideX(){return strideX;}
     public float getStrideY(){return strideY;}
@@ -244,9 +252,13 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         ArrayList<PixioPoint> cubeCenters = new ArrayList<>(builder.getCubeCenters());
         ArrayList<PixioPoint> tileCenters = new ArrayList<>(gridBuilder.getTileCenters());
 
-        cubeCenters.addAll(tileCenters);
+        if(gridIsTouchable()){
+            cubeCenters.addAll(tileCenters);
+        }
+
         touchResult = ObjectSelectHelper.getTouchResult(cubeCenters, normalizedX, normalizedY, invertedViewProjectionMatrix, modelMatrix, scaleFactor, strideX, strideY, (float)height/width, Settings.gridHeight);
         if(!touchResult.cubeTouched) return;
+        if(buildingMode && touchResult.newCubeCenter.y < Settings.gridHeight) return;
 
         if(buildingMode){
 
@@ -285,8 +297,9 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         this.renderingModel = model;
         shouldLoadNewModel = true;
 
-
     }
+
+    private boolean gridIsTouchable(){ return !(yAngle < 0 && yAngle > -180);}
 
     @Override
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config) {
@@ -589,7 +602,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         @Override
         protected void calculateModelMatrix() {
 
-            centerFigureOnScreen();
+//            centerFigureOnScreen();
 
             super.calculateModelMatrix();
             //set user made stride
@@ -639,11 +652,13 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
 
             super.calculateModelMatrix();
 
-            Matrix.translateM(modelMatrix, 0, strideX/scaleFactor, -strideY/scaleFactor, 0.0f);
+            //Matrix.translateM(modelMatrix, 0, strideX/scaleFactor, -strideY/scaleFactor, 0.0f);
 
             //set user made rotation
             rotateM(modelMatrix, 0, yAngle, 1f, 0f, 0f);
             rotateM(modelMatrix, 0, xAngle, 0f, 1f, 0f);
+
+
         }
 
 
@@ -666,6 +681,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         @Override
         public void draw() {
 
+            builder.setViewMode(false);
+
             drawBackground();
 
             calculateModelMatrix();
@@ -679,6 +696,8 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
             drawFigure();
 
             makeScreenshot();
+
+            builder.setViewMode(viewMode);
 
             returnPreviousState();
 

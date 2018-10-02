@@ -17,7 +17,7 @@ void main()
     finalVector[3] = 10.0/u_ScaleFactor;
     gl_Position = finalVector;
 
-    gl_PointSize = 10.0;
+    gl_PointSize = 15.0;
 
 }
 

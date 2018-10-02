@@ -92,7 +92,7 @@ public class ObjectSelectHelper {
             }
 
             newCubeCenter = getTouchedCubeSide(touchedCubeCenter, ray.point, modelMatrix);
-            if(newCubeCenter != null && newCubeCenter.y > gridHeight) {
+            if(newCubeCenter != null) {
                 cubeTouched = true;
             }
 

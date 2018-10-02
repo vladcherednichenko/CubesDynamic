@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +65,12 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     private float floatColorWidth;
     private int intColorWidth;
     private int screenWidth;
+
+    private float selectedColorWidth;
+    private float nonSelectedColorWidth;
+
+    //colors
+    //scale size when select color
     float scaleSize = 1.4f;
 
     private float toolBarSize = 0.07f;
@@ -270,8 +277,9 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         Point size = new Point();
         display. getSize(size);
         screenWidth = size. x;
-        floatColorWidth = (float)screenWidth / colorsNumber;
-        intColorWidth = Math.round(floatColorWidth);
+
+        nonSelectedColorWidth = (float)screenWidth / (colorsNumber-1 + scaleSize);
+        selectedColorWidth = scaleSize * nonSelectedColorWidth;
 
         editor_color_row = view.findViewById(R.id.editor_colors_row);
         editor_color_row.setActivity(this.getActivity());
@@ -305,18 +313,18 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         img_shadow_right = new ImageView(this.getContext());
         img_shadow_right.setImageDrawable(getResources().getDrawable(R.drawable.shadow_right));
 
+        img_shadow_right.setTranslationY(selectedColorWidth - nonSelectedColorWidth);
+        img_shadow_left.setTranslationY(selectedColorWidth - nonSelectedColorWidth);
+
         editor_color_row.addView(img_shadow_left);
         editor_color_row.addView(img_shadow_right);
-        resetColorsLayout();
+
+        selectColor(0);
         setShadows(0);
 
-        img_shadow_left.setVisibility(View.INVISIBLE);
-        img_shadow_right.setVisibility(View.INVISIBLE);
-
-
         RelativeLayout.LayoutParams toolsRowParams = (RelativeLayout.LayoutParams) toolsRow.getLayoutParams();
-        toolsRowParams.bottomMargin = Math.round(floatColorWidth * scaleSize);
-        //toolsRowParams.setMargins(0, 0, 0, Math.round(floatColorWidth * scaleSize));
+        toolsRowParams.bottomMargin = Math.round(selectedColorWidth);
+        toolsRow.setGravity(Gravity.BOTTOM);
 
         toolsRow.setLayoutParams(toolsRowParams);
 
@@ -325,53 +333,56 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
     private void selectColor(int colorPosition){
 
-        int elevation = 10;
-        int shadowSize = 0;
-
-        ImageView image = colorRow.get(colorPosition);
-
-        resetColorsLayout();
-
         surfaceView.getRenderer().setColor(colorOrder[colorPosition]);
 
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) image.getLayoutParams();
+        for (int i = 0; i< colorRow.size(); i++){
 
-        //shadow
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            ImageView image = colorRow.get(i);
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) image.getLayoutParams();
 
-            image.setElevation(elevation);
+            int marginLeft = 0;
+
+            if(i < colorPosition){
+
+                params.width = Math.round(nonSelectedColorWidth);
+                params.height = Math.round(nonSelectedColorWidth);
+
+                marginLeft = Math.round(i * nonSelectedColorWidth);
+
+            }else if(i == colorPosition){
+
+                if(colorPosition == colorsNumber -1){
+                    params.width = Math.round(selectedColorWidth);
+                    params.height = Math.round(selectedColorWidth);
+                }else {
+                    params.width = Math.round(selectedColorWidth) + 1;
+                    params.height = Math.round(selectedColorWidth) + 1;
+                }
+
+                marginLeft = Math.round(i * nonSelectedColorWidth);
+
+            }else{
+
+                params.width = Math.round(nonSelectedColorWidth);
+                params.height = Math.round(nonSelectedColorWidth);
+
+                marginLeft = Math.round(i * nonSelectedColorWidth + (selectedColorWidth - nonSelectedColorWidth)) ;
+
+            }
+
+            params.leftMargin = marginLeft;
+            params.bottomMargin = 0;
+
+            image.setLayoutParams(params);
+
+            if(i != colorPosition){
+                image.setTranslationY(selectedColorWidth - nonSelectedColorWidth);
+            }else{
+                image.setTranslationY(0f);
+            }
 
 
-        }else{
-            image.bringToFront();
         }
-
-        //size
-        image.setTranslationY(params.height - params.height * scaleSize);
-        int deltaWidth = Math.round(params.height * scaleSize) - params.height;
-
-        params.width = Math.round(params.width * scaleSize);
-        params.height = Math.round(params.height * scaleSize);
-
-
-        //margins
-        int marginBottom = Math.round(params.height - params.height * scaleSize);
-        int marginLeft = params.leftMargin;
-        int marginRight = params.rightMargin;
-
-        if (colorPosition == 0) {
-            marginLeft = -(shadowSize + elevation);
-        }else if(colorPosition == colorOrder.length-1){
-            marginLeft -= (shadowSize + elevation + Math.round(deltaWidth/8));
-            marginRight = -(shadowSize + elevation);
-        }else{
-
-            marginLeft = Math.round((float)params.leftMargin - (float)deltaWidth /2);
-
-        }
-
-        params.setMargins(marginLeft, params.topMargin, marginRight, marginBottom);
-        image.setLayoutParams(params);
 
     }
 
@@ -380,20 +391,14 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
         img_shadow_left.setVisibility(View.VISIBLE);
         img_shadow_right.setVisibility(View.VISIBLE);
 
-        Display display = getActivity().getWindowManager(). getDefaultDisplay();
-        Point size = new Point();
-        display. getSize(size);
-        int screenWidth = size. x;
-        final int intColorWidth = Math.round((float)screenWidth / colorsNumber);
-        final int intColorHeight = intColorWidth;
+        img_shadow_left.bringToFront();
+        img_shadow_right.bringToFront();
 
-        float floatColorSize = (float)screenWidth / colorsNumber;
+        RelativeLayout.LayoutParams leftShadowParams = new RelativeLayout.LayoutParams(Math.round(nonSelectedColorWidth), Math.round(nonSelectedColorWidth));
+        RelativeLayout.LayoutParams rightShadowParams = new RelativeLayout.LayoutParams(Math.round(nonSelectedColorWidth), Math.round(nonSelectedColorWidth));
 
-        RelativeLayout.LayoutParams leftShadowParams = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
-        RelativeLayout.LayoutParams rightShadowParams = new RelativeLayout.LayoutParams(intColorWidth, intColorHeight);
-
-        leftShadowParams.setMargins(Math.round(floatColorSize * (selectedColorPosition-1)), 0, 0, 0);
-        rightShadowParams.setMargins(Math.round(floatColorSize * (selectedColorPosition+1)), 0, 0, 0);
+        leftShadowParams.setMargins(Math.round(nonSelectedColorWidth * (selectedColorPosition-1)), 0, 0, 0);
+        rightShadowParams.setMargins(Math.round(nonSelectedColorWidth * (selectedColorPosition) + Math.round(selectedColorWidth)), 0, 0, 0);
 
         img_shadow_right.setLayoutParams(rightShadowParams);
         img_shadow_left.setLayoutParams(leftShadowParams);
@@ -404,6 +409,8 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             img_shadow_right.setVisibility(View.INVISIBLE);
         }
 
+        colorRow.get(selectedColorPosition).bringToFront();
+
 
     }
 
@@ -411,41 +418,6 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
         return  colorRow.indexOf((ImageView)v);
 
-    }
-
-    private void resetColorsLayout(){
-
-        int colorsNumber = 16;
-
-        for (int i = 0; i< colorRow.size(); i++){
-
-            ImageView image = colorRow.get(i);
-
-
-
-
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(intColorWidth, intColorWidth);
-            params.setMargins(i == colorsNumber-1? screenWidth - intColorWidth:Math.round(floatColorWidth*i), 0, 0, 0);
-
-            image.setPadding(0, 0, 0, 0);
-
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-
-                image.setElevation(0f);
-
-            }else{
-                img_shadow_left.bringToFront();
-                img_shadow_right.bringToFront();
-            }
-
-
-            image.setTranslationY(0f);
-
-            image.setLayoutParams(params);
-
-
-
-        }
     }
 
     private void openMenu(){
