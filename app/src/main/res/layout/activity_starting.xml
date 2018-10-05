@@ -55,9 +55,8 @@
         android:layout_alignParentTop="true"
         android:layout_marginStart="91dp"
         android:layout_marginTop="141dp"
-        android:background="@drawable/improved_shadow"
         android:elevation="3dp"
-        app:srcCompat="@mipmap/color_04" />
+        app:srcCompat="@drawable/pixio_color_rectangle_04" />
 
     <ImageView
         android:id="@+id/imageView2"
@@ -66,7 +65,7 @@
         android:layout_alignBottom="@+id/imageView"
         android:layout_alignParentStart="true"
         android:layout_marginStart="71dp"
-        app:srcCompat="@mipmap/color_13" />
+        app:srcCompat="@drawable/pixio_color_rectangle_13" />
 
     <ImageView
         android:id="@+id/imageView3"
@@ -77,7 +76,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginStart="118dp"
         android:layout_marginTop="160dp"
-        app:srcCompat="@mipmap/color_14" />
+        app:srcCompat="@drawable/pixio_color_rectangle_14" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -92,27 +91,21 @@
             android:id="@+id/imageView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:srcCompat="@mipmap/color_02" />
+            app:srcCompat="@drawable/pixio_color_rectangle_02" />
 
         <ImageView
             android:id="@+id/imageView5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:elevation="10dp"
-            android:background="@drawable/improved_shadow"
-            app:srcCompat="@mipmap/color_12" />
+            app:srcCompat="@drawable/pixio_color_rectangle_12" />
 
         <ImageView
             android:id="@+id/imageView7"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:srcCompat="@mipmap/color_10" />
+            app:srcCompat="@drawable/pixio_color_rectangle_10" />
 
-        <ImageView
-            android:id="@+id/imageView6"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:srcCompat="@mipmap/color_14" />
     </LinearLayout>
 
 

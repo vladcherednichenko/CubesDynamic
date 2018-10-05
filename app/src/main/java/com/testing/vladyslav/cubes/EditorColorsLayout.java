@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 
 import com.testing.vladyslav.cubes.activities.StudioActivity;
 
-public class CustomRelativeLayout extends RelativeLayout{
+public class EditorColorsLayout extends RelativeLayout{
 
     private OnColorTouchListener listener;
     private Activity activity;
@@ -21,19 +21,19 @@ public class CustomRelativeLayout extends RelativeLayout{
 
     }
 
-    public CustomRelativeLayout(Context context) {
+    public EditorColorsLayout(Context context) {
         super(context);
     }
 
-    public CustomRelativeLayout(Context context, AttributeSet attrs) {
+    public EditorColorsLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public CustomRelativeLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public EditorColorsLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    public CustomRelativeLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public EditorColorsLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 

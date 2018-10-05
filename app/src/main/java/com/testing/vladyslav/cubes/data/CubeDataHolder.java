@@ -1,9 +1,5 @@
 package com.testing.vladyslav.cubes.data;
 
-import android.util.Log;
-
-import com.testing.vladyslav.cubes.Facet;
-
 import java.util.ArrayList;
 
 public class CubeDataHolder {

@@ -3,7 +3,7 @@ package com.testing.vladyslav.cubes.util;
 import android.content.Context;
 import android.content.res.Resources;
 
-import com.testing.vladyslav.cubes.Facet;
+import com.testing.vladyslav.cubes.data.Facet;
 import com.testing.vladyslav.cubes.objects.PixioPoint;
 import com.testing.vladyslav.cubes.util.Geometry.Vector;
 

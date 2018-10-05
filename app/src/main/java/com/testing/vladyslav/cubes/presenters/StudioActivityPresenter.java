@@ -24,6 +24,8 @@ import com.testing.vladyslav.cubes.util.PixioHelper;
 import com.testing.vladyslav.cubes.util.TextResourceReader;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class StudioActivityPresenter {
 
@@ -282,6 +284,8 @@ public class StudioActivityPresenter {
         if(viewMode){
 
             cubes = PixioHelper.figureToCubeList(editorFragmentView.getRenderer().getCubes());
+
+            Collections.sort(cubes);
 
         }
 

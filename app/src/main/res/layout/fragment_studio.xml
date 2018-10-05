@@ -16,7 +16,7 @@
         android:layout_alignParentStart="true"
         android:layout_marginStart="10sp"
         android:layout_marginTop="20sp"
-        app:srcCompat="@mipmap/ic_menu_left"/>
+        app:srcCompat="@drawable/ic_menu_left"/>
 
     <RelativeLayout
         android:id="@+id/set_header"
@@ -44,7 +44,7 @@
             android:adjustViewBounds="true"
             android:gravity="center_vertical"
             android:scaleType="fitCenter"
-            app:srcCompat="@drawable/add_model_icon" />
+            app:srcCompat="@drawable/ic_studio_add_model" />
     </RelativeLayout>
 
 

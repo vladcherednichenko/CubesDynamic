@@ -44,7 +44,7 @@ public class ColorsLayoutCreator {
             colorBlock.setLayoutParams(colorBlockParams);
 
             ImageView imgBlock = new ImageView(context);
-            imgBlock.setImageDrawable(context.getResources().getDrawable(context.getResources().getIdentifier(pc.filename, "mipmap", context.getPackageName())));
+            imgBlock.setImageDrawable(context.getResources().getDrawable(context.getResources().getIdentifier(pc.filename, "drawable", context.getPackageName())));
 
             int blockHeight = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, r.getDisplayMetrics()));
             int blockWidth = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, r.getDisplayMetrics()));

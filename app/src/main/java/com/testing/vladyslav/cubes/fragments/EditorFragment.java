@@ -3,7 +3,6 @@ package com.testing.vladyslav.cubes.fragments;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -22,7 +21,7 @@ import android.widget.TextView;
 import com.testing.vladyslav.cubes.ColorsLayoutCreator;
 import com.testing.vladyslav.cubes.CubeRenderer;
 import com.testing.vladyslav.cubes.CubeSurfaceView;
-import com.testing.vladyslav.cubes.CustomRelativeLayout;
+import com.testing.vladyslav.cubes.EditorColorsLayout;
 import com.testing.vladyslav.cubes.PixioCube;
 import com.testing.vladyslav.cubes.R;
 import com.testing.vladyslav.cubes.database.entities.UserModel;
@@ -59,7 +58,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     private LinearLayoutCompat colorsRow;
 
 
-    private CustomRelativeLayout editor_color_row;
+    private EditorColorsLayout editor_color_row;
 
     //metrics
     private float floatColorWidth;
@@ -95,25 +94,25 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
     public static final HashMap<Integer, Integer> colorCodeToImageName = new HashMap<Integer, Integer>(){
         {
 
-            put(243, R.mipmap.color_16); //turquoise
-            put(244, R.mipmap.color_15); //green
-            put(245, R.mipmap.color_14); //light green
-            put(246, R.mipmap.color_13); //yellow
+            put(243, R.drawable.pixio_color_rectangle_16); //turquoise
+            put(244, R.drawable.pixio_color_rectangle_15); //green
+            put(245, R.drawable.pixio_color_rectangle_14); //light green
+            put(246, R.drawable.pixio_color_rectangle_13); //yepixio_llow
 
-            put(247, R.mipmap.color_12); //orange
-            put(248, R.mipmap.color_11); //red
-            put(250, R.mipmap.color_10); //pink
-            put(249, R.mipmap.color_09); //violet
+            put(247, R.drawable.pixio_color_rectangle_12); //orange
+            put(248, R.drawable.pixio_color_rectangle_11); //red
+            put(250, R.drawable.pixio_color_rectangle_10); //pink
+            put(249, R.drawable.pixio_color_rectangle_09); //vipixio_olet
 
-            put(241, R.mipmap.color_08); //blue
-            put(242, R.mipmap.color_07); //light blue
-            put(253, R.mipmap.color_06); //brown
-            put(252, R.mipmap.color_05); //light brown
+            put(241, R.drawable.pixio_color_rectangle_08); //blue
+            put(242, R.drawable.pixio_color_rectangle_07); //light blue
+            put(253, R.drawable.pixio_color_rectangle_06); //brown
+            put(252, R.drawable.pixio_color_rectangle_05); //light bpixio_rown
 
-            put(251, R.mipmap.color_04); //tan
-            put(254, R.mipmap.color_03); //white
-            put(255, R.mipmap.color_02); //grey
-            put(240, R.mipmap.color_01); //black
+            put(251, R.drawable.pixio_color_rectangle_04); //tan
+            put(254, R.drawable.pixio_color_rectangle_03); //white
+            put(255, R.drawable.pixio_color_rectangle_02); //grey
+            put(240, R.drawable.pixio_color_rectangle_01); //black
         }};
 
     @Nullable
@@ -283,7 +282,7 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
 
         editor_color_row = view.findViewById(R.id.editor_colors_row);
         editor_color_row.setActivity(this.getActivity());
-        editor_color_row.setOnColorTouchListener(new CustomRelativeLayout.OnColorTouchListener() {
+        editor_color_row.setOnColorTouchListener(new EditorColorsLayout.OnColorTouchListener() {
             @Override
             public void onTouch(int colorPosition) {
                 selectColor(colorPosition);
@@ -446,28 +445,28 @@ public class EditorFragment extends Fragment implements StudioActivityPresenter.
             closeMenu();
             ColorsLayoutCreator.createColorBlocksLayout(getActivity().getApplicationContext(), cubes, colorsRow, null);
             txt_view_mode.setText("Editor mode");
-            Animation down = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_down);
+            Animation down = AnimationUtils.loadAnimation(getContext(),R.anim.editor_toolbar_slide_down);
             editor_color_row.startAnimation(down);
             toolsRow.startAnimation(down);
             toolsRow.setVisibility(View.INVISIBLE);
             editor_color_row.setVisibility(View.INVISIBLE);
 
 
-            Animation up = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_up);
+            Animation up = AnimationUtils.loadAnimation(getContext(),R.anim.editor_toolbar_slide_up);
             colorsRow.startAnimation(up);
             colorsRow.setVisibility(View.VISIBLE);
 
         }else{
             closeMenu();
             txt_view_mode.setText("View mode");
-            Animation up = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_up);
+            Animation up = AnimationUtils.loadAnimation(getContext(),R.anim.editor_toolbar_slide_up);
             toolsRow.startAnimation(up);
             editor_color_row.startAnimation(up);
             toolsRow.setVisibility(View.VISIBLE);
             editor_color_row.setVisibility(View.VISIBLE);
 
 
-            Animation down = AnimationUtils.loadAnimation(getContext(),R.anim.toolbar_slide_down);
+            Animation down = AnimationUtils.loadAnimation(getContext(),R.anim.editor_toolbar_slide_down);
             colorsRow.startAnimation(down);
             colorsRow.setVisibility(View.INVISIBLE);
 

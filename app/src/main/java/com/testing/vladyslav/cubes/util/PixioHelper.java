@@ -54,23 +54,23 @@ public class PixioHelper {
 
 
     public static final HashMap<Integer, String> colorCodeToFileName = new HashMap<Integer, String>(){{
-        put(248,"pixio_color_11");
-        put(247,"pixio_color_12");
-        put(246,"pixio_color_13");
-        put(245,"pixio_color_14");
-        put(244,"pixio_color_15");
-        put(243,"pixio_color_16");
-        put(242,"pixio_color_07");
-        put(241,"pixio_color_08");
-        put(249,"pixio_color_09");
-        put(250,"pixio_color_10");
-        put(251,"pixio_color_04");
-        put(252,"pixio_color_05");
-        put(253,"pixio_color_06");
-        put(255,"pixio_color_02");
-        put(240,"pixio_color_01");
-        put(254,"pixio_color_03");
-        put(238,"pixio_color_01");
+        put(248,"pixio_color_cube_11");
+        put(247,"pixio_color_cube_12");
+        put(246,"pixio_color_cube_13");
+        put(245,"pixio_color_cube_14");
+        put(244,"pixio_color_cube_15");
+        put(243,"pixio_color_cube_16");
+        put(242,"pixio_color_cube_07");
+        put(241,"pixio_color_cube_08");
+        put(249,"pixio_color_cube_09");
+        put(250,"pixio_color_cube_10");
+        put(251,"pixio_color_cube_04");
+        put(252,"pixio_color_cube_05");
+        put(253,"pixio_color_cube_06");
+        put(255,"pixio_color_cube_02");
+        put(240,"pixio_color_cube_01");
+        put(254,"pixio_color_cube_03");
+        put(238,"pixio_color_cube_01");
 
     }};
 

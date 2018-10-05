@@ -33,12 +33,15 @@
             android:layout_width = "50dp"
             android:layout_height="match_parent"
             android:layout_alignParentBottom="true"
-            app:srcCompat="@mipmap/ic_menu_left" />
+            app:srcCompat="@drawable/ic_menu_left" />
 
         <LinearLayout
+            android:id="@+id/too"
             android:layout_width="wrap_content"
             android:layout_height="35dp"
             android:orientation="horizontal"
+            android:layout_toEndOf="@id/img_cancel"
+            android:layout_toStartOf="@id/img_repeat"
             android:layout_centerInParent="true"
             android:layout_centerHorizontal="true">
 
@@ -46,9 +49,9 @@
                 android:id="@+id/img_add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
+                android:layout_marginStart="50dp"
                 android:layout_marginEnd="0dp"
-                app:srcCompat= "@mipmap/icon_add"
+                app:srcCompat= "@drawable/ic_studio_add_block"
                 android:layout_weight="1"/>
 
             <ImageView
@@ -57,15 +60,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="0dp"
                 android:layout_marginEnd="0dp"
-                app:srcCompat= "@mipmap/icon_change_color"
+                app:srcCompat= "@drawable/ic_studio_change_color"
                 android:layout_weight="1"/>
             <ImageView
                 android:id="@+id/img_delete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="0dp"
-                android:layout_marginEnd="5dp"
-                app:srcCompat= "@mipmap/icon_delete"
+                android:layout_marginEnd="50dp"
+                app:srcCompat= "@drawable/ic_studio_delete_block"
                 android:layout_weight="1"/>
 
 
@@ -78,19 +81,19 @@
             android:layout_height="match_parent"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
-            app:srcCompat="@mipmap/ic_menu_right" />
+            app:srcCompat="@drawable/ic_menu_right" />
 
     </RelativeLayout>
 
 
-    <com.testing.vladyslav.cubes.CustomRelativeLayout
+    <com.testing.vladyslav.cubes.EditorColorsLayout
         android:id="@+id/editor_colors_row"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_alignParentBottom="true"
         android:gravity="bottom">
 
-    </com.testing.vladyslav.cubes.CustomRelativeLayout>
+    </com.testing.vladyslav.cubes.EditorColorsLayout>
 
     <android.support.v7.widget.LinearLayoutCompat
         android:id="@+id/figure_colors_row"
@@ -109,7 +112,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        app:srcCompat="@mipmap/ic_menu" />
+        app:srcCompat="@drawable/ic_menu" />
 
 
     <RelativeLayout
@@ -127,7 +130,7 @@
             android:layout_alignParentTop="true"
             android:layout_marginEnd="10sp"
             android:layout_marginTop="5sp"
-            app:srcCompat="@mipmap/ic_menu_up" />
+            app:srcCompat="@drawable/ic_menu_up" />
 
         <LinearLayout
             android:id="@+id/menu_layout"

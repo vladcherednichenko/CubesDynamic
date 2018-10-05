@@ -1,4 +1,4 @@
-package com.testing.vladyslav.cubes;
+package com.testing.vladyslav.cubes.data;
 
 import com.testing.vladyslav.cubes.objects.PixioPoint;
 import com.testing.vladyslav.cubes.util.Geometry;

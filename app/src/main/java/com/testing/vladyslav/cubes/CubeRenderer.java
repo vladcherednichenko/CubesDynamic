@@ -309,7 +309,7 @@ public class CubeRenderer implements GLSurfaceView.Renderer {
         glClearColor(bgColor.RED, bgColor.GREEN, bgColor.BLUE, 0.0f);
         //GLES20.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
-        // Use culling to remove back faces.
+        // Use culling to remove ic_back_black faces.
         GLES20.glEnable(GLES20.GL_CULL_FACE);
 
         // Enable depth testing to remove drawing objects that are behind other objects
